@@ -1,0 +1,24 @@
+fail_fast: true
+repos:
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.3.0
+    hooks:
+      - id: ruff
+        args: [ --fix ]
+      - id: ruff-format
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.27.2
+    hooks:
+      - id: gitleaks
+  - repo: local
+    hooks:
+      - id: check-header-py
+        name: Check for license header in Python files
+        entry: .precommit/check_header.sh
+        language: system
+        files: '\.(py)$'
+        exclude: '^$'
+      - id: check-cli-readme
+        name: Check if the CLI Readme needs an update
+        entry: .precommit/check_cli_readme.sh
+        language: system
