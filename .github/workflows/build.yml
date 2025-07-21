@@ -197,6 +197,7 @@ jobs:
           cache: false  # Disable cache to avoid permission issues
           push: false  # Don't push to registry yet
           context: .
+          load: true  # Load image into local daemon for testing
 
       - name: Test Kaniko-built image
         run: |
