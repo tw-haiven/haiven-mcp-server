@@ -27,6 +27,11 @@ jobs:
     container:
       image: semgrep/semgrep
     if: (github.actor != 'dependabot[bot]')
+    permissions:
+      contents: read
+      security-events: write
+      actions: read
+      id-token: write
     steps:
       - uses: actions/checkout@v4
 
