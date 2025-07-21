@@ -118,13 +118,12 @@ jobs:
         with:
           context: .
           platforms: linux/amd64,linux/arm64
-          push: false
+          push: true
           load: false
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
-          outputs: type=oci,dest=/tmp/images.tar
           build-args: |
             BUILDKIT_INLINE_CACHE=1
 
@@ -174,7 +173,7 @@ jobs:
           labels: ${{ steps.meta-kaniko.outputs.labels }}
           cache: true
           cache-repository: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/cache
-          push: false
+          push: true
           context: .
 
 
@@ -189,6 +188,7 @@ jobs:
     steps:
       - name: Show build summary
         run: |
-          echo "✅ Build completed successfully"
+          echo "✅ Build and push completed successfully"
           echo "📦 Image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}"
+          echo "🚀 Images pushed to registry"
           echo "🔒 Security: Semgrep scanning enabled"
