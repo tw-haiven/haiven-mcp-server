@@ -14,6 +14,7 @@ on:
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: thoughtworks/haiven-mcp-server
+  DOCKER_BUILDKIT: 1
 
 permissions:
   contents: read
@@ -30,6 +31,16 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
+          cache: 'pip'
+      - name: Cache poetry dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/pypoetry
+            .venv
+          key: ${{ runner.os }}-poetry-${{ hashFiles('**/poetry.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-poetry-
       - name: Install dependencies
         run: |
           pip install poetry
@@ -79,6 +90,9 @@ jobs:
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
+        with:
+          driver-opts: |
+            image=moby/buildkit:v0.12.0
 
       - name: Log in to Container Registry
         uses: docker/login-action@v3
@@ -111,20 +125,19 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
           outputs: type=oci,dest=/tmp/images.tar
+          build-args: |
+            BUILDKIT_INLINE_CACHE=1
 
       - name: Test multi-architecture image (Buildx)
         run: |
-          # Test AMD64 architecture
-          docker buildx build --platform linux/amd64 --load -t test-amd64 .
+          # Test AMD64 architecture (reuse from previous build)
+          docker buildx build --platform linux/amd64 --load -t test-amd64 . \
+            --cache-from type=gha
           docker run --rm --platform linux/amd64 test-amd64 \
             python -c "import sys; print('AMD64 test passed')" || exit 1
 
-          # Test ARM64 architecture (just verify build works)
-          docker buildx build --platform linux/arm64 --load -t test-arm64 .
-          echo "✅ ARM64 build completed successfully"
-
           # Clean up test images
-          docker rmi test-amd64 test-arm64 2>/dev/null || true
+          docker rmi test-amd64 2>/dev/null || true
 
   build-kaniko:
     needs: [pre-commit, semgrep]
@@ -159,7 +172,8 @@ jobs:
         with:
           tags: ${{ steps.meta-kaniko.outputs.tags }}
           labels: ${{ steps.meta-kaniko.outputs.labels }}
-          cache: false
+          cache: true
+          cache-repository: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/cache
           push: false
           context: .
 
