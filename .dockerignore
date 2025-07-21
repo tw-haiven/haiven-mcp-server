@@ -2,29 +2,12 @@
 .git
 .gitignore
 
-# Python
+# Python cache
 __pycache__
 *.pyc
 *.pyo
 *.pyd
 .Python
-env
-pip-log.txt
-pip-delete-this-directory.txt
-.tox
-.coverage
-.coverage.*
-.cache
-nosetests.xml
-coverage.xml
-*.cover
-*.log
-!poetry.lock
-!*.lock
-.git
-.mypy_cache
-.pytest_cache
-.hypothesis
 
 # Virtual environments
 .env
@@ -32,8 +15,6 @@ coverage.xml
 env/
 venv/
 ENV/
-env.bak/
-venv.bak/
 
 # IDE
 .vscode/
@@ -76,5 +57,6 @@ config_examples/
 # GitHub
 .github/
 
-# Poetry
-# poetry.lock - needed for reproducible builds
+# Explicitly include poetry files
+!pyproject.toml
+!poetry.lock
