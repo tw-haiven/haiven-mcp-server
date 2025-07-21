@@ -57,10 +57,13 @@ htmlcov/
 .tox/
 
 # MCP specific
-mcp_server.log 
+mcp_server.log
 
 # Generated config
 scripts/*.json
 
 #ruff cache
 .ruff_cache/
+
+# AI Assistant temporary files
+.aicustom/

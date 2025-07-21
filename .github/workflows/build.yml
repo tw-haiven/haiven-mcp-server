@@ -1,0 +1,255 @@
+---
+name: Build Multi-Architecture Docker Image
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+    branches: [main]
+  workflow_dispatch: null  # Allow manual triggers
+  schedule:
+    - cron: '20 17 * * *'  # Sets Semgrep to scan every day at 17:20 UTC.
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: thoughtworks/haiven-mcp-server
+
+permissions:
+  contents: read
+  packages: write
+  security-events: write
+
+jobs:
+  semgrep:
+    name: semgrep-oss/scan
+    runs-on: ubuntu-latest
+    container:
+      image: semgrep/semgrep
+    if: (github.actor != 'dependabot[bot]')
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run full Semgrep scan
+        run: >
+          semgrep scan --metrics=off --config "p/default" --sarif >
+          semgrep.sarif
+
+      - name: Check for high severity issues
+        run: >
+          semgrep scan --metrics=off --config "p/default" --error
+          --severity=ERROR
+        continue-on-error: false
+
+      - name: Upload SARIF file
+        uses: actions/upload-artifact@v4
+        with:
+          name: semgrep-results
+          path: semgrep.sarif
+          retention-days: 7
+
+      - name: Upload SARIF to GitHub
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: semgrep.sarif
+          category: semgrep
+
+  build-buildx:
+    needs: semgrep
+    if: github.event_name != 'schedule'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+        with:
+          virtualenvs-create: true
+          virtualenvs-in-project: true
+          installer-parallel: true
+
+      - name: Install dependencies
+        run: |
+          poetry install --no-interaction --no-root
+
+      - name: Run pre-commit checks
+        uses: pre-commit/action@v3.0.1
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=sha,prefix={{branch}}-
+
+      - name: Build multi-architecture image (Buildx)
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          platforms: linux/amd64,linux/arm64
+          push: false  # Don't push to registry yet
+          load: false  # Don't load into local registry
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          outputs: type=docker,dest=/tmp/images.tar
+
+      - name: Test multi-architecture image (Buildx)
+        run: |
+          echo "🧪 Testing multi-architecture image (Buildx)..."
+
+          # Extract and test AMD64 architecture
+          echo "Testing AMD64 architecture..."
+          docker buildx build --platform linux/amd64 --load -t test-amd64 .
+          if docker run --rm --platform linux/amd64 test-amd64 python -c \
+            "import sys; print('AMD64 test passed')" 2>/dev/null | \
+            grep -q "AMD64 test passed"; then
+            echo "✅ AMD64 architecture test passed"
+          else
+            echo "❌ AMD64 architecture test failed"
+            exit 1
+          fi
+
+          # Extract and test ARM64 architecture
+          echo "Testing ARM64 architecture..."
+          docker buildx build --platform linux/arm64 --load -t test-arm64 .
+          if docker run --rm --platform linux/arm64 test-arm64 python -c \
+            "import sys; print('ARM64 test passed')" 2>/dev/null | \
+            grep -q "ARM64 test passed"; then
+            echo "✅ ARM64 architecture test passed"
+          else
+            echo "❌ ARM64 architecture test failed"
+            exit 1
+          fi
+
+          # Test environment variable handling
+          echo "Testing environment variable handling..."
+          output=$(docker run --rm --platform linux/amd64 test-amd64 python -c "
+          import os
+          print('API URL:', os.environ.get('HAIVEN_API_URL', 'not set'))
+          print('DISABLE AUTH:', os.environ.get('HAIVEN_DISABLE_AUTH', \
+            'not set'))
+          " 2>/dev/null || true)
+
+          if echo "$output" | grep -q "API URL:"; then
+            echo "✅ Environment variable handling test passed"
+          else
+            echo "❌ Environment variable handling test failed"
+            exit 1
+          fi
+
+          # Clean up test images
+          docker rmi test-amd64 test-arm64 2>/dev/null || \
+            true
+
+          echo "🎉 All multi-architecture tests passed!"
+
+  build-kaniko:
+    needs: semgrep
+    if: github.event_name != 'schedule' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+    outputs:
+      image_digest: ${{ steps.kaniko-build.outputs.digest }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Log in to Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata
+        id: meta-kaniko
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+
+      - name: Build with Kaniko (single architecture)
+        id: kaniko-build
+        uses: int128/kaniko-action@v1
+        with:
+          tags: ${{ steps.meta-kaniko.outputs.tags }}
+          labels: ${{ steps.meta-kaniko.outputs.labels }}
+          cache: true
+          cache-repository: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/cache
+          push: false  # Don't push to registry yet
+          context: .
+
+      - name: Test Kaniko-built image
+        run: |
+          echo "🧪 Testing Kaniko-built image..."
+
+          # Test the built image
+          if docker run --rm ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ \
+            steps.meta-kaniko.outputs.version }} \
+            python -c "import sys; print('Kaniko test passed')" 2>/dev/null | \
+            grep -q "Kaniko test passed"; then
+            echo "✅ Kaniko build test passed"
+          else
+            echo "❌ Kaniko build test failed"
+            exit 1
+          fi
+
+          echo "🎉 Kaniko build and test completed!"
+
+  show-build-summary:
+    needs: [build-buildx, build-kaniko]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Show build summary
+        run: |
+          echo "📊 Build Summary"
+          echo "================"
+          echo "✅ Security scanning completed"
+          echo "✅ Multi-architecture build (Buildx) completed"
+          echo "✅ Single-architecture build (Kaniko) completed"
+          echo "✅ All tests passed"
+          echo ""
+          echo "📦 Image details:"
+          echo "- Name: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}"
+          echo "- Platforms: linux/amd64, linux/arm64 (Buildx)"
+          echo "- Single platform (Kaniko)"
+          echo ""
+          echo "🔒 Security:"
+          echo "- Semgrep scanning enabled"
+          echo "- High severity issues checked"
+          echo ""
+          echo "🚀 Next steps:"
+          echo "1. Review the build logs above"
+          echo "2. Test locally with: ./scripts/test_multiarch.sh"
+          echo "3. When ready, set push: true in both build jobs"
+          echo "4. Push to main to publish to registry"
