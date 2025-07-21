@@ -148,53 +148,18 @@ jobs:
 
       - name: Test multi-architecture image (Buildx)
         run: |
-          echo "🧪 Testing multi-architecture image (Buildx)..."
-
-          # Extract and test AMD64 architecture
-          echo "Testing AMD64 architecture..."
+          # Test AMD64 architecture
           docker buildx build --platform linux/amd64 --load -t test-amd64 .
-          if docker run --rm --platform linux/amd64 test-amd64 python -c \
-            "import sys; print('AMD64 test passed')" 2>/dev/null | \
-            grep -q "AMD64 test passed"; then
-            echo "✅ AMD64 architecture test passed"
-          else
-            echo "❌ AMD64 architecture test failed"
-            exit 1
-          fi
+          docker run --rm --platform linux/amd64 test-amd64 \
+            python -c "import sys; print('AMD64 test passed')" || exit 1
 
-          # Extract and test ARM64 architecture
-          echo "Testing ARM64 architecture..."
+          # Test ARM64 architecture
           docker buildx build --platform linux/arm64 --load -t test-arm64 .
-          if docker run --rm --platform linux/arm64 test-arm64 python -c \
-            "import sys; print('ARM64 test passed')" 2>/dev/null | \
-            grep -q "ARM64 test passed"; then
-            echo "✅ ARM64 architecture test passed"
-          else
-            echo "❌ ARM64 architecture test failed"
-            exit 1
-          fi
-
-          # Test environment variable handling
-          echo "Testing environment variable handling..."
-          output=$(docker run --rm --platform linux/amd64 test-amd64 python -c "
-          import os
-          print('API URL:', os.environ.get('HAIVEN_API_URL', 'not set'))
-          print('DISABLE AUTH:', \
-            os.environ.get('HAIVEN_DISABLE_AUTH', 'not set'))
-          " 2>/dev/null || true)
-
-          if echo "$output" | grep -q "API URL:"; then
-            echo "✅ Environment variable handling test passed"
-          else
-            echo "❌ Environment variable handling test failed"
-            exit 1
-          fi
+          docker run --rm --platform linux/arm64 test-arm64 \
+            python -c "import sys; print('ARM64 test passed')" || exit 1
 
           # Clean up test images
-          docker rmi test-amd64 test-arm64 2>/dev/null || \
-            true
-
-          echo "🎉 All multi-architecture tests passed!"
+          docker rmi test-amd64 test-arm64 2>/dev/null || true
 
   build-kaniko:
     needs: [pre-commit, semgrep]
@@ -223,20 +188,6 @@ jobs:
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
 
-      - name: Debug build context
-        run: |
-          echo "🔍 Debugging build context..."
-          echo "Current directory: $(pwd)"
-          echo "Files in current directory:"
-          ls -la
-          echo ""
-          echo "Checking for poetry files:"
-          ls -la | grep -E "(pyproject|poetry)" || echo "No poetry files found"
-          echo ""
-          echo "Testing .dockerignore:"
-          tar --exclude-from=.dockerignore -czf - . | tar -tz | \
-            grep -E "(pyproject|poetry)" || echo "No poetry files in tar"
-
       - name: Build with Kaniko (single architecture)
         id: kaniko-build
         uses: int128/kaniko-action@v1
@@ -249,29 +200,9 @@ jobs:
 
       - name: Test Kaniko-built image
         run: |
-          echo "🧪 Testing Kaniko-built image..."
-
-          # Test the built image
           IMAGE_TAG="${{ steps.meta-kaniko.outputs.version }}"
-          FULL_IMAGE_NAME="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:$IMAGE_TAG"
-
-          # Check if image exists
-          if ! docker image inspect "$FULL_IMAGE_NAME" >/dev/null 2>&1; then
-            echo "❌ Kaniko image not found: $FULL_IMAGE_NAME"
-            exit 1
-          fi
-
-          if docker run --rm \
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:$IMAGE_TAG \
-            python -c "import sys; print('Kaniko test passed')" 2>/dev/null | \
-            grep -q "Kaniko test passed"; then
-            echo "✅ Kaniko build test passed"
-          else
-            echo "❌ Kaniko build test failed"
-            exit 1
-          fi
-
-          echo "🎉 Kaniko build and test completed!"
+          docker run --rm ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:$IMAGE_TAG \
+            python -c "import sys; print('Kaniko test passed')" || exit 1
 
   show-build-summary:
     needs: [build-buildx, build-kaniko]
@@ -280,24 +211,6 @@ jobs:
     steps:
       - name: Show build summary
         run: |
-          echo "📊 Build Summary"
-          echo "================"
-          echo "✅ Security scanning completed"
-          echo "✅ Multi-architecture build (Buildx) completed"
-          echo "✅ Single-architecture build (Kaniko) completed"
-          echo "✅ All tests passed"
-          echo ""
-          echo "📦 Image details:"
-          echo "- Name: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}"
-          echo "- Platforms: linux/amd64, linux/arm64 (Buildx)"
-          echo "- Single platform (Kaniko)"
-          echo ""
-          echo "🔒 Security:"
-          echo "- Semgrep scanning enabled"
-          echo "- High severity issues checked"
-          echo ""
-          echo "🚀 Next steps:"
-          echo "1. Review the build logs above"
-          echo "2. Test locally with: ./scripts/test_multiarch.sh"
-          echo "3. When ready, set push: true in both build jobs"
-          echo "4. Push to main to publish to registry"
+          echo "✅ Build completed successfully"
+          echo "📦 Image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}"
+          echo "🔒 Security: Semgrep scanning enabled"
