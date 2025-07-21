@@ -13,13 +13,14 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: thoughtworks/haiven-mcp-server
+  IMAGE_NAME: ${{ github.repository }}
   DOCKER_BUILDKIT: 1
 
 permissions:
   contents: read
   packages: write
   security-events: write
+  id-token: write
 
 jobs:
   pre-commit:
