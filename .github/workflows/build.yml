@@ -58,43 +58,12 @@ jobs:
           --severity=ERROR
         continue-on-error: false
 
-      - name: Show scan summary
-        run: |
-          echo "🔍 Semgrep Scan Summary"
-          echo "======================="
-          semgrep scan --metrics=off --config "p/default" --json | \
-          jq -r '.results | length as $count | "Found \($count) issues"' || \
-          echo "No issues found or scan completed"
-
       - name: Upload SARIF file
         uses: actions/upload-artifact@v4
         with:
           name: semgrep-results
           path: semgrep.sarif
           retention-days: 7
-
-      - name: Upload SARIF to GitHub (Optional - requires Advanced Security)
-        uses: github/codeql-action/upload-sarif@v3
-        with:
-          sarif_file: semgrep.sarif
-          category: semgrep
-        continue-on-error: true
-
-      - name: Show Semgrep Results Summary
-        run: |
-          echo "📊 Semgrep Security Scan Results"
-          echo "================================"
-          if [ -f semgrep.sarif ]; then
-            echo "✅ SARIF file generated successfully"
-            echo "📁 SARIF file uploaded as artifact: semgrep-results"
-            echo "📋 You can download and review the results manually"
-            echo ""
-            echo "Note: GitHub Code Scanning requires Advanced Security"
-            echo "The SARIF file is available as an artifact for manual review"
-          else
-            echo "❌ SARIF file not found"
-            exit 1
-          fi
 
   build-buildx:
     needs: [pre-commit, semgrep]
@@ -107,9 +76,6 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-
-      # Python setup removed - not needed for Docker builds
-      # Pre-commit checks should run locally, not in CI
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -138,8 +104,8 @@ jobs:
         with:
           context: .
           platforms: linux/amd64,linux/arm64
-          push: false  # Don't push to registry yet
-          load: false  # Don't load into local registry
+          push: false
+          load: false
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
@@ -193,8 +159,8 @@ jobs:
         with:
           tags: ${{ steps.meta-kaniko.outputs.tags }}
           labels: ${{ steps.meta-kaniko.outputs.labels }}
-          cache: false  # Disable cache to avoid permission issues
-          push: false  # Don't push to registry yet
+          cache: false
+          push: false
           context: .
 
 
