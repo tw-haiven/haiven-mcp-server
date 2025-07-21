@@ -223,6 +223,20 @@ jobs:
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
 
+      - name: Debug build context
+        run: |
+          echo "🔍 Debugging build context..."
+          echo "Current directory: $(pwd)"
+          echo "Files in current directory:"
+          ls -la
+          echo ""
+          echo "Checking for poetry files:"
+          ls -la | grep -E "(pyproject|poetry)" || echo "No poetry files found"
+          echo ""
+          echo "Testing .dockerignore:"
+          tar --exclude-from=.dockerignore -czf - . | tar -tz | \
+            grep -E "(pyproject|poetry)" || echo "No poetry files in tar"
+
       - name: Build with Kaniko (single architecture)
         id: kaniko-build
         uses: int128/kaniko-action@v1
