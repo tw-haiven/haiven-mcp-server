@@ -127,7 +127,7 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
-          outputs: type=docker,dest=/tmp/images.tar
+          outputs: type=oci,dest=/tmp/images.tar
 
       - name: Test multi-architecture image (Buildx)
         run: |
@@ -212,8 +212,7 @@ jobs:
         with:
           tags: ${{ steps.meta-kaniko.outputs.tags }}
           labels: ${{ steps.meta-kaniko.outputs.labels }}
-          cache: true
-          cache-repository: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/cache
+          cache: false  # Disable cache to avoid permission issues
           push: false  # Don't push to registry yet
           context: .
 
