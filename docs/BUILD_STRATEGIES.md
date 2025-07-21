@@ -4,14 +4,13 @@ This document explains the dual build strategy implemented for the Haiven MCP Se
 
 ## Overview
 
-The build system implements two complementary approaches:
+The build system implements a single, optimized approach:
 
-1. **Buildx (Multi-Architecture)**: Modern Docker approach for cross-platform compatibility
-2. **Kaniko (Security-Focused)**: Secure, reproducible builds aligned with main Haiven repository
+1. **Buildx (Multi-Architecture)**: Modern Docker approach for cross-platform compatibility with comprehensive testing
 
-## Build Strategies
+## Build Strategy
 
-### 1. Docker Buildx (Recommended for Distribution)
+### Docker Buildx (Multi-Architecture)
 
 **Purpose**: Multi-architecture support for cross-platform distribution
 
@@ -21,12 +20,15 @@ The build system implements two complementary approaches:
 - ✅ **Modern Docker approach**: Uses `docker buildx`
 - ✅ **Caching optimization**: GitHub Actions cache integration
 - ✅ **Comprehensive testing**: Architecture-specific validation
+- ✅ **Security scanning**: Integrated Semgrep scanning
+- ✅ **Pre-commit checks**: Code quality enforcement
 
 **Use Cases**:
 - Production distribution
 - Cross-platform deployment
 - End-user installations
 - Cloud deployments
+- Enterprise deployments
 
 **Build Command**:
 ```bash
@@ -35,29 +37,6 @@ The build system implements two complementary approaches:
 
 # CI/CD (GitHub Actions)
 # Automatically triggered on push/PR
-```
-
-### 2. Kaniko (Security-Focused)
-
-**Purpose**: Secure, reproducible builds aligned with main Haiven repository
-
-**Features**:
-- ✅ **Security hardened**: No Docker daemon dependency
-- ✅ **Reproducible builds**: Consistent across environments
-- ✅ **Enterprise alignment**: Matches main Haiven repository approach
-- ✅ **Single architecture**: Optimized for current platform
-- ✅ **Security scanning**: Integrated Semgrep scanning
-
-**Use Cases**:
-- Enterprise deployments
-- Security-sensitive environments
-- CI/CD pipelines requiring reproducibility
-- Compliance requirements
-
-**Build Command**:
-```bash
-# CI/CD only (GitHub Actions)
-# Automatically triggered on main branch
 ```
 
 ## Security Integration
@@ -86,12 +65,12 @@ Code quality is enforced through pre-commit hooks:
 
 | Feature | Haiven Main | MCP Server |
 |---------|-------------|------------|
-| **Build Tool** | Kaniko | Buildx + Kaniko |
+| **Build Tool** | Kaniko | Buildx |
 | **Multi-Arch** | ❌ Single | ✅ Multi-Arch |
 | **Security** | ✅ Semgrep | ✅ Semgrep |
 | **Pre-commit** | ✅ Yes | ✅ Yes |
 | **Testing** | ✅ Comprehensive | ✅ Container-focused |
-| **Distribution** | ✅ Registry push | ⏳ Push disabled |
+| **Distribution** | ✅ Registry push | ✅ Registry push |
 
 ## Architecture Support
 
@@ -100,9 +79,10 @@ Code quality is enforced through pre-commit hooks:
 - **ARM64**: Apple Silicon, ARM servers
 - **Future**: ARM32 support planned
 
-### Kaniko Approach
-- **Current platform**: Optimized for deployment environment
-- **Single architecture**: Focused on security and reproducibility
+### Buildx Approach (Current)
+- **AMD64**: Intel/AMD processors
+- **ARM64**: Apple Silicon, ARM servers
+- **Future**: ARM32 support planned
 
 ## Testing Strategy
 
@@ -116,7 +96,7 @@ docker run --rm --platform linux/amd64 image:tag python -c "import sys; print('t
 docker run --rm --platform linux/arm64 image:tag python -c "import sys; print('test')"
 ```
 
-### Security Testing (Kaniko)
+### Security Testing (Buildx)
 ```bash
 # Security scan results
 # Available in GitHub Actions artifacts
@@ -130,14 +110,16 @@ docker run --rm --platform linux/arm64 image:tag python -c "import sys; print('t
 - ✅ **Multi-architecture**: AMD64 + ARM64 support
 - ✅ **Code quality**: Pre-commit hooks
 - ✅ **Testing**: Comprehensive validation
-- ⏳ **Registry push**: Disabled for testing
-- ⏳ **Deployment**: Ready when push enabled
+- ✅ **Registry push**: Enabled and working
+- ✅ **Deployment**: Production ready
+- ✅ **Latest tag**: Automatically created on main branch
 
 ### Next Steps
-1. **Enable registry push**: Set `push: true` in workflows
-2. **Deploy to production**: Trigger main branch builds
+1. **Monitor builds**: Ensure builds complete successfully
+2. **Test images**: Validate both AMD64 and ARM64 architectures
 3. **Monitor security**: Review Semgrep results
 4. **Performance optimization**: Monitor resource usage
+5. **Verify latest tag**: Confirm `latest` tag is working correctly
 
 ## Troubleshooting
 
@@ -153,9 +135,9 @@ docker buildx create --name multiarch --driver docker-container --use
 docker manifest inspect image:tag
 ```
 
-### Kaniko Issues
+### Build Issues
 ```bash
-# Check Kaniko logs in GitHub Actions
+# Check build logs in GitHub Actions
 # Verify registry permissions
 # Review security scan results
 ```
@@ -175,7 +157,7 @@ docker run --rm -v $(pwd):/src semgrep/semgrep scan --config "p/default"
 ```bash
 # Build configuration
 REGISTRY=ghcr.io
-IMAGE_NAME=thoughtworks/haiven-mcp-server
+IMAGE_NAME=tw-haiven/haiven-mcp-server
 
 # Security configuration
 SEMGREP_CONFIG=p/default

@@ -19,6 +19,18 @@
 | **🐍 Python Local** | Python 3.11+, Poetry | Developers | `poetry install` |
 | **🏢 Enterprise** | Docker, Kubernetes | IT teams | Container orchestration |
 
+**Available Docker Images:**
+- `ghcr.io/tw-haiven/haiven-mcp-server:latest` - Latest stable release
+- `ghcr.io/tw-haiven/haiven-mcp-server:main-<sha>` - Specific commit builds
+- `ghcr.io/tw-haiven/haiven-mcp-server:v1.0.0` - Versioned releases (when available)
+
+**Test the Docker image:**
+```bash
+./scripts/test_docker_image.sh [your-api-key] [your-api-url]
+```
+
+> **Note**: Images are built with multi-architecture support (AMD64 + ARM64) using Docker Buildx for optimal compatibility across different platforms.
+
 ## 🚀 **Quick Start**
 
 ### **Docker Installation**
@@ -28,16 +40,18 @@ docker run -i --rm \
   -e HAIVEN_API_KEY="your-api-key" \
   -e HAIVEN_API_URL="http://host.docker.internal:8080" \
   --add-host=host.docker.internal:host-gateway \
-  ghcr.io/thoughtworks/haiven-mcp-server:latest
+  ghcr.io/tw-haiven/haiven-mcp-server:latest
 
 # Linux
 docker run -i --rm \
   -e HAIVEN_API_KEY="your-api-key" \
   -e HAIVEN_API_URL="http://host.docker.internal:8080" \
-  ghcr.io/thoughtworks/haiven-mcp-server:latest
+  ghcr.io/tw-haiven/haiven-mcp-server:latest
 ```
 
 ### **AI Tool Configuration**
+
+**Docker Configuration (Recommended)**:
 ```json
 {
   "mcpServers": {
@@ -48,12 +62,31 @@ docker run -i --rm \
         "-e", "HAIVEN_API_KEY=your-key",
         "-e", "HAIVEN_API_URL=http://host.docker.internal:8080",
         "--add-host=host.docker.internal:host-gateway",
-        "ghcr.io/thoughtworks/haiven-mcp-server:latest"
+        "ghcr.io/tw-haiven/haiven-mcp-server:latest"
       ]
     }
   }
 }
 ```
+
+**Local Python Configuration**:
+```json
+{
+  "mcpServers": {
+    "haiven-prompts": {
+      "command": "python",
+      "args": ["mcp_server.py"],
+      "cwd": "/path/to/haiven/mcp-server",
+      "env": {
+        "HAIVEN_API_URL": "https://your-haiven-instance.com",
+        "HAIVEN_API_KEY": "your_api_key_generated_by_admin"
+      }
+    }
+  }
+}
+```
+
+**See `config_examples/` for more configuration options.**
 
 ## 🔑 **Getting Your API Key**
 

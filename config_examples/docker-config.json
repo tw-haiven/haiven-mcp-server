@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "haiven-prompts": {
+      "command": "docker",
+      "args": [
+        "run", "-i", "--rm",
+        "-e", "HAIVEN_API_KEY=your_api_key_generated_by_admin",
+        "-e", "HAIVEN_API_URL=https://your-haiven-instance.com",
+        "ghcr.io/tw-haiven/haiven-mcp-server:latest"
+      ]
+    }
+  }
+}

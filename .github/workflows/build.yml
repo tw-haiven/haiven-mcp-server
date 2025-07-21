@@ -113,6 +113,7 @@ jobs:
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
             type=sha,prefix={{branch}}-
+            type=raw,value=latest,enable={{is_default_branch}}
 
       - name: Build multi-architecture image (Buildx)
         uses: docker/build-push-action@v5
@@ -139,51 +140,11 @@ jobs:
           # Clean up test images
           docker rmi test-amd64 2>/dev/null || true
 
-  build-kaniko:
-    needs: [pre-commit, semgrep]
-    if: github.event_name != 'schedule' && github.ref == 'refs/heads/main'
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write
-      id-token: write
-    outputs:
-      image_digest: ${{ steps.kaniko-build.outputs.digest }}
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Log in to Container Registry
-        uses: docker/login-action@v3
-        with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Extract metadata
-        id: meta-kaniko
-        uses: docker/metadata-action@v5
-        with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
-
-      - name: Build with Kaniko (single architecture)
-        id: kaniko-build
-        uses: int128/kaniko-action@v1
-        with:
-          tags: ${{ steps.meta-kaniko.outputs.tags }}
-          labels: ${{ steps.meta-kaniko.outputs.labels }}
-          cache: true
-          cache-repository: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/cache
-          push: true
-          context: .
-
-
-      - name: Test Kaniko-built image
-        run: |
-          echo "✅ Kaniko build completed successfully"
+  # Kaniko build removed - Buildx provides better multi-architecture support
+  # and is sufficient for all use cases
 
   show-build-summary:
-    needs: [build-buildx, build-kaniko]
+    needs: [build-buildx]
     if: always()
     runs-on: ubuntu-latest
     steps:
@@ -191,5 +152,6 @@ jobs:
         run: |
           echo "✅ Build and push completed successfully"
           echo "📦 Image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}"
-          echo "🚀 Images pushed to registry"
+          echo "🚀 Multi-architecture images pushed to registry"
           echo "🔒 Security: Semgrep scanning enabled"
+          echo "🏗️  Built with Docker Buildx (AMD64 + ARM64)"
