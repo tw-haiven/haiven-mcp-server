@@ -77,4 +77,4 @@ if [[ -f "mcp_server.py" ]]; then
 else
     echo "Starting MCP server using module syntax..."
     poetry run python -m src.mcp_server "$HAIVEN_API_URL"
-fi 
+fi

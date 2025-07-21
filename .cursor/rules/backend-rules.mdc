@@ -1,6 +1,6 @@
 ---
 description: Backend Python API tasks
-globs: 
+globs:
 ---
 
 - Our backend is in Python and in the app/ subfolder. The app needs to be started from that directory.

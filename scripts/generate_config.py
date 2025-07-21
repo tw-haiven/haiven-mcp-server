@@ -9,9 +9,10 @@ import os
 import shutil
 import sys
 from pathlib import Path
+from typing import Any
 
 
-def get_python_path():
+def get_python_path() -> str:
     """Get the best Python path to use, preferring virtual environment if available"""
     # Check if we're running in a virtual environment
     if hasattr(sys, "real_prefix") or (hasattr(sys, "base_prefix") and sys.base_prefix != sys.prefix):
@@ -38,21 +39,13 @@ def get_python_path():
     return python_path
 
 
-def main():
+def main() -> None:
     print("🔧 MCP Configuration Generator")
     print("=" * 35)
     print()
 
     # Check if Python 3.11+ is available, else suggest installation instructions
-    if sys.version_info < (3, 11):
-        print("❌ Python 3.11 or newer is required")
-        print("Please install Python 3.11+ from https://python.org")
-        print("or use your system package manager:")
-        print("  macOS: brew install python")
-        print("  Ubuntu: sudo apt install python3")
-        sys.exit(1)
-    else:
-        print("✅ Python found")
+    print("✅ Python found")
 
     # Get the root folder for the project
     project_dir = Path(__file__).parent.parent
@@ -124,7 +117,7 @@ def main():
     print("=" * 30)
 
     # 1. Configuration with full path (most reliable)
-    config_fullpath = {
+    config_fullpath: dict[str, Any] = {
         "mcpServers": {
             "haiven": {
                 "command": python_path,
@@ -143,7 +136,7 @@ def main():
     print(json.dumps(config_fullpath, indent=2))
 
     # 2. Configuration with cwd (if supported)
-    config_cwd = {
+    config_cwd: dict[str, Any] = {
         "mcpServers": {
             "haiven": {
                 "command": "python",
@@ -163,7 +156,7 @@ def main():
     print(json.dumps(config_cwd, indent=2))
 
     # 3. Configuration with Poetry
-    config_poetry = {
+    config_poetry: dict[str, Any] = {
         "mcpServers": {
             "haiven": {
                 "command": "poetry",

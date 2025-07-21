@@ -82,7 +82,7 @@ brew install poetry
    ```bash
    # Mac/Linux
    ./scripts/install.sh
-   
+
    # Windows
    python scripts/generate_config.py
    ```
@@ -250,7 +250,7 @@ If you're stuck:
 
 ## 🎉 **You're All Set!**
 
-Now you can use Haiven's powerful AI prompts directly from your favorite AI tool! 
+Now you can use Haiven's powerful AI prompts directly from your favorite AI tool!
 
 **Pro Tips:**
 - Start with asking "What prompts are available?" to explore
@@ -258,4 +258,4 @@ Now you can use Haiven's powerful AI prompts directly from your favorite AI tool
 - The integration remembers your conversation context
 - You can still use your AI tool's regular features alongside Haiven
 
-**Happy AI-powered work! 🚀** 
+**Happy AI-powered work! 🚀**

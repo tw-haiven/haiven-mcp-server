@@ -1,3 +1,4 @@
+---
 name: pre-commit
 
 on: [push, pull_request]
@@ -16,4 +17,4 @@ jobs:
           poetry install
           pip install pre-commit
       - name: Run pre-commit
-        run: pre-commit run --all-files --show-diff-on-failure 
+        run: pre-commit run --all-files --show-diff-on-failure

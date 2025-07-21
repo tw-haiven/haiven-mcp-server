@@ -61,4 +61,4 @@ echo "Then restart your AI tool (Claude Desktop, VS Code, Cursor, etc.) to see t
 # Wait for user input on macOS
 if [[ "$OSTYPE" == "darwin"* ]]; then
     read -p "Press any key to continue..."
-fi 
+fi

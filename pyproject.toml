@@ -32,6 +32,14 @@ line-length=140
 select = ["E", "F", "I"]
 ignore = []
 
+[tool.mypy]
+python_version = "3.11"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+explicit_package_bases = true
+packages = ["src"]
+
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 testpaths = [
@@ -40,4 +48,4 @@ testpaths = [
 python_files = [
     "test_*.py",
     "*_test.py",
-] 
+]

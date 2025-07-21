@@ -177,7 +177,7 @@ Create different config files for different environments:
 HAIVEN_API_URL=http://localhost:8080
 HAIVEN_DISABLE_AUTH=true
 
-# staging.env  
+# staging.env
 HAIVEN_API_URL=https://staging.haiven.com
 HAIVEN_API_KEY=staging-api-key
 
@@ -215,7 +215,7 @@ poetry run python test_integration.py
 # Local development
 export HAIVEN_API_URL="http://localhost:8080" && export HAIVEN_DISABLE_AUTH="true"
 
-# Remote testing  
+# Remote testing
 export HAIVEN_API_URL="https://your-remote.com" && export HAIVEN_API_KEY="your-key" && unset HAIVEN_DISABLE_AUTH
 ```
 
@@ -234,7 +234,7 @@ You can have multiple MCP servers configured:
       }
     },
     "haiven-staging": {
-      "command": "python", 
+      "command": "python",
       "args": ["-m", "src.mcp_server"],
       "cwd": "/path/to/haiven-mcp-server",
       "env": {
@@ -272,6 +272,6 @@ This is useful for AI tools or scripts that do not support the 'cwd' setting or 
 - [ ] ✅ MCP server responds to prompts query
 - [ ] ✅ Can execute prompts through AI tool
 
-**Happy local development! 🚀** 
+**Happy local development! 🚀**
 
-> **Note:** The preferred way to run the MCP server is with `python -m src.mcp_server` (or `poetry run python -m src.mcp_server`). This ensures Python uses the correct module path and works reliably with the current project structure. 
+> **Note:** The preferred way to run the MCP server is with `python -m src.mcp_server` (or `poetry run python -m src.mcp_server`). This ensures Python uses the correct module path and works reliably with the current project structure.

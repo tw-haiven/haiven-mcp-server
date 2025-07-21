@@ -11,28 +11,25 @@ import os
 
 # Add the src directory to the Python path for imports
 import sys
+from typing import Any
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../../src")))
 
-from tools import (
-    GetPromptsToolHandler,
-    GetPromptTextToolHandler,
-    ToolRegistry,
-)
+from tools import GetPromptsToolHandler, GetPromptTextToolHandler, ToolRegistry
 
 
 @pytest.fixture
-def mock_client():
+def mock_client() -> AsyncMock:
     """Create a mock HTTP client."""
     client = AsyncMock()
     client.base_url = "http://localhost:8000"
     return client
 
 
-async def test_tool_registry(mock_client):
+async def test_tool_registry(mock_client: Any) -> None:
     """Test the tool registry functionality."""
     registry = ToolRegistry(mock_client)
 
@@ -60,7 +57,7 @@ async def test_tool_registry(mock_client):
     print("✓ Tool registry test passed")
 
 
-async def test_get_prompts_tool(mock_client):
+async def test_get_prompts_tool(mock_client: Any) -> None:
     """Test the get_prompts tool."""
     # Mock response data
     mock_prompts = [
@@ -126,7 +123,7 @@ async def test_get_prompts_tool(mock_client):
     print("✓ get_prompts tool test passed")
 
 
-async def test_get_prompt_text_tool(mock_client):
+async def test_get_prompt_text_tool(mock_client: Any) -> None:
     """Test the get_prompt_text tool."""
     # Mock response data for a prompt with content
     mock_prompt = {
@@ -167,7 +164,7 @@ async def test_get_prompt_text_tool(mock_client):
     print("✓ get_prompt_text tool test passed")
 
 
-async def test_get_prompt_text_tool_missing_id(mock_client):
+async def test_get_prompt_text_tool_missing_id(mock_client: Any) -> None:
     """Test the get_prompt_text tool with missing prompt_id."""
     tool = GetPromptTextToolHandler(mock_client)
     result = await tool.execute({})
@@ -181,7 +178,7 @@ async def test_get_prompt_text_tool_missing_id(mock_client):
     print("✓ get_prompt_text tool missing ID test passed")
 
 
-async def test_error_handling(mock_client):
+async def test_error_handling(mock_client: Any) -> None:
     """Test error handling in tools."""
     # Setup mock response with error
     mock_response = MagicMock()
@@ -201,7 +198,7 @@ async def test_error_handling(mock_client):
     print("✓ Error handling test passed")
 
 
-async def main():
+async def main() -> None:
     """Run all tests."""
     try:
         print("Running Haiven MCP Server Tools tests...")

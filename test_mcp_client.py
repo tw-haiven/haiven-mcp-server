@@ -15,11 +15,11 @@ from typing import Any
 class SimpleMCPClient:
     """Simple MCP client for testing."""
 
-    def __init__(self, server_command: list):
+    def __init__(self, server_command: list[str]) -> None:
         self.server_command = server_command
-        self.process = None
+        self.process: Any = None
 
-    def start_server(self):
+    def start_server(self) -> bool:
         """Start the MCP server process."""
         try:
             self.process = subprocess.Popen(
@@ -47,10 +47,14 @@ class SimpleMCPClient:
             raise RuntimeError("No response from server")
 
         try:
-            return json.loads(response_line.strip())
+            result = json.loads(response_line.strip())
+            if isinstance(result, dict):
+                return result
+            else:
+                raise RuntimeError(f"Expected dict response, got {type(result)}")
         except json.JSONDecodeError:
             print(f"❌ Failed to parse response: {response_line.strip()}")
-            raise
+            raise RuntimeError(f"Failed to parse response: {response_line.strip()}")
 
     def test_initialization(self) -> bool:
         """Test MCP server initialization."""
@@ -123,7 +127,7 @@ class SimpleMCPClient:
             print(f"❌ Tool call failed: {e}")
             return False
 
-    def stop_server(self):
+    def stop_server(self) -> None:
         """Stop the MCP server process."""
         if self.process:
             self.process.terminate()
@@ -163,7 +167,7 @@ class SimpleMCPClient:
             self.stop_server()
 
 
-def main():
+def main() -> int:
     """Main test function."""
     # Test with Docker container
     docker_command = [

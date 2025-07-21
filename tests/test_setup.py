@@ -11,7 +11,7 @@ import subprocess
 import sys
 
 
-def test_python_version():
+def test_python_version() -> None:
     """Test Python version compatibility."""
     print("Testing Python version...")
     version = sys.version_info
@@ -19,7 +19,7 @@ def test_python_version():
     print(f"✓ Python {version.major}.{version.minor}.{version.micro} - OK")
 
 
-def test_poetry_installation():
+def test_poetry_installation() -> None:
     """Test if Poetry is installed."""
     print("Testing Poetry installation...")
     try:
@@ -30,7 +30,7 @@ def test_poetry_installation():
         assert False, "✗ Poetry not installed"
 
 
-def test_dependencies():
+def test_dependencies() -> None:
     """Test if required dependencies are installed."""
     print("Testing dependencies...")
 
@@ -50,7 +50,7 @@ def test_dependencies():
             assert False, f"✗ {description} ({module_name}) - Import error"
 
 
-def test_environment_variables():
+def test_environment_variables() -> None:
     """Test environment variables setup."""
     print("Testing environment variables...")
 
@@ -59,7 +59,7 @@ def test_environment_variables():
     assert True
 
 
-def test_file_structure():
+def test_file_structure() -> None:
     """Test that required files exist."""
     print("Testing file structure...")
 
@@ -76,7 +76,7 @@ def test_file_structure():
         print(f"✓ {display_name} - OK")
 
 
-def main():
+def main() -> int:
     """Run all setup tests."""
     print("=" * 50)
     print("Haiven MCP Server Setup Test")
@@ -90,11 +90,11 @@ def main():
         test_environment_variables,
     ]
 
-    results = []
+    results: list[bool] = []
     for test in tests:
         print()
-        result = test()
-        results.append(result)
+        test()  # These functions don't return anything, they just run
+        results.append(True)  # Assume success if no exception
 
     print("\n" + "=" * 50)
     print("Test Results:")

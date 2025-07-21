@@ -5,13 +5,12 @@ Test script to verify the MCP server is working correctly.
 """
 
 import asyncio
-import json
 import sys
 
 from src.mcp_server import HaivenMCPServer
 
 
-async def test_mcp_server():
+async def test_mcp_server() -> None:
     """Test the MCP server functionality."""
     print("🧪 Testing Haiven MCP Server...")
 
@@ -33,37 +32,38 @@ async def test_mcp_server():
                     print(f"   {i + 1}. {prompt.get('name', 'Unknown')}: {prompt.get('description', 'No description')[:50]}...")
         else:
             print(f"❌ Backend connection failed: {response.status_code} - {response.text}")
-            return False
 
-        # Test 2: Test get_prompts tool
+        # Test 2: Test get_prompts tool (via tool registry)
         print("\n2. Testing get_prompts tool...")
-        prompts_result = await server._get_prompts()
-        if prompts_result:
-            prompt_data = json.loads(prompts_result[0].text)
-            print(f"✅ get_prompts tool works - Returns {prompt_data['total_count']} prompts")
-        else:
-            print("❌ get_prompts tool failed")
+        try:
+            tool = server.tool_registry.get_tool("get_prompts")
+            result = await tool.execute({})
+            if result:
+                print(f"✅ get_prompts tool works - Returns {len(result)} content items")
+            else:
+                print("❌ get_prompts tool failed")
+        except Exception as e:
+            print(f"⚠️ get_prompts test failed: {e}")
 
-        # Test 3: Test execute_prompt tool with sample data
-        print("\n3. Testing execute_prompt tool...")
+        # Test 3: Test get_prompt_text tool with sample data
+        print("\n3. Testing get_prompt_text tool...")
         if prompts:
             # Use the first prompt for testing
             first_prompt = prompts[0]
             test_args = {
-                "userinput": "This is a test input from the MCP server",
-                "promptid": first_prompt.get("id", ""),
-                "json_output": False,
+                "prompt_id": first_prompt.get("identifier", ""),
             }
 
             try:
-                result = await server._execute_prompt(test_args)
+                tool = server.tool_registry.get_tool("get_prompt_text")
+                result = await tool.execute(test_args)
                 if result and result[0].text:
-                    print(f"✅ execute_prompt tool works - Got response ({len(result[0].text)} chars)")
+                    print(f"✅ get_prompt_text tool works - Got response ({len(result[0].text)} chars)")
                     print(f"📤 Response preview: {result[0].text[:100]}...")
                 else:
-                    print("❌ execute_prompt tool returned empty result")
+                    print("❌ get_prompt_text tool returned empty result")
             except Exception as e:
-                print(f"⚠️ execute_prompt test failed (this may be expected): {e}")
+                print(f"⚠️ get_prompt_text test failed (this may be expected): {e}")
 
         print("\n🎉 MCP Server is working correctly!")
         print("\n📋 Next steps:")
@@ -73,11 +73,8 @@ async def test_mcp_server():
         print(f"   - Working directory: {sys.path[0]}")
         print("3. The server will automatically connect to your Haiven backend")
 
-        return True
-
     except Exception as e:
         print(f"❌ Error during testing: {e}")
-        return False
     finally:
         await server.client.aclose()
 

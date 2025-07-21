@@ -238,4 +238,4 @@ If you're having authentication issues:
 3. Test authentication manually in your browser first
 4. Check MCP server logs for detailed error messages
 
-For security concerns or questions about API keys, contact your Haiven administrator or the Thoughtworks team. 
+For security concerns or questions about API keys, contact your Haiven administrator or the Thoughtworks team.

@@ -4,7 +4,7 @@ Base tool class for Haiven MCP Server.
 """
 
 import abc
-from typing import Any, Dict, List
+from typing import Any
 
 from mcp.types import TextContent, Tool
 
@@ -12,7 +12,7 @@ from mcp.types import TextContent, Tool
 class BaseTool(abc.ABC):
     """Base class for all tool handlers."""
 
-    def __init__(self, client=None):
+    def __init__(self, client: Any = None) -> None:
         """Initialize the tool handler.
 
         Args:
@@ -34,7 +34,7 @@ class BaseTool(abc.ABC):
 
     @property
     @abc.abstractmethod
-    def input_schema(self) -> Dict[str, Any]:
+    def input_schema(self) -> dict[str, Any]:
         """Get the input schema for the tool."""
         pass
 
@@ -47,7 +47,7 @@ class BaseTool(abc.ABC):
         )
 
     @abc.abstractmethod
-    async def execute(self, arguments: Dict[str, Any]) -> List[TextContent]:
+    async def execute(self, arguments: dict[str, Any]) -> list[TextContent]:
         """Execute the tool with the given arguments.
 
         Args:

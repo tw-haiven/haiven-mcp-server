@@ -13,7 +13,7 @@ import sys
 from unittest.mock import AsyncMock, MagicMock, patch
 
 
-async def test_mcp_server_creation():
+async def test_mcp_server_creation() -> None:
     """Test that the MCP server can be created successfully."""
 
     with patch("httpx.AsyncClient"):
@@ -31,7 +31,7 @@ async def test_mcp_server_creation():
         print("✓ MCP server creation test passed")
 
 
-async def test_get_prompts_tool():
+async def test_get_prompts_tool() -> None:
     """Test the get_prompts tool."""
 
     # Mock response data
@@ -102,7 +102,7 @@ async def test_get_prompts_tool():
         print("✓ get_prompts tool test passed")
 
 
-async def test_error_handling():
+async def test_error_handling() -> None:
     """Test error handling in the get_prompts tool."""
 
     with patch("httpx.AsyncClient") as mock_client_class:
@@ -127,7 +127,7 @@ async def test_error_handling():
         print("✓ Error handling test passed")
 
 
-async def test_get_prompt_text_tool():
+async def test_get_prompt_text_tool() -> None:
     """Test the get_prompt_text tool."""
 
     # Mock response data for a prompt with content
@@ -176,7 +176,7 @@ async def test_get_prompt_text_tool():
         print("✓ get_prompt_text tool test passed")
 
 
-async def test_get_prompt_text_tool_not_found():
+async def test_get_prompt_text_tool_not_found() -> None:
     """Test the get_prompt_text tool when prompt is not found."""
 
     with patch("httpx.AsyncClient") as mock_client_class:
@@ -206,7 +206,7 @@ async def test_get_prompt_text_tool_not_found():
         print("✓ get_prompt_text tool not found test passed")
 
 
-async def main():
+async def main() -> None:
     """Run all tests."""
     try:
         print("Running Haiven MCP Server tests...")

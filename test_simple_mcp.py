@@ -11,7 +11,7 @@ import sys
 import time
 
 
-def test_mcp_server_basic():
+def test_mcp_server_basic() -> bool:
     """Test basic MCP server functionality."""
     print("🧪 Testing Haiven MCP Server Basic Functionality")
     print("=" * 50)
@@ -53,11 +53,16 @@ def test_mcp_server_basic():
 
         print("Sending initialization request...")
         message = json.dumps(init_request) + "\n"
-        process.stdin.write(message)
-        process.stdin.flush()
+        if process.stdin is not None:
+            process.stdin.write(message)
+            process.stdin.flush()
 
         # Read response
-        response_line = process.stdout.readline()
+        if process.stdout is not None:
+            response_line = process.stdout.readline()
+        else:
+            print("❌ No stdout available")
+            return False
         if response_line:
             try:
                 response = json.loads(response_line.strip())
@@ -93,7 +98,7 @@ def test_mcp_server_basic():
                 print("⚠️  Server killed forcefully")
 
 
-def test_container_health():
+def test_container_health() -> bool:
     """Test container health and basic functionality."""
     print("\n🧪 Testing Container Health")
     print("=" * 30)
@@ -131,7 +136,7 @@ def test_container_health():
         return False
 
 
-def main():
+def main() -> int:
     """Main test function."""
     tests = [test_container_health, test_mcp_server_basic]
 

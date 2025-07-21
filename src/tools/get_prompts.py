@@ -4,7 +4,7 @@ Get prompts tool for Haiven MCP Server.
 """
 
 import json
-from typing import Any, Dict, List
+from typing import Any
 
 import httpx
 from loguru import logger
@@ -27,7 +27,7 @@ class GetPromptsToolHandler(BaseTool):
         return "Get all available prompts with their metadata and follow-ups"
 
     @property
-    def input_schema(self) -> Dict[str, Any]:
+    def input_schema(self) -> dict[str, Any]:
         """Get the input schema for the tool."""
         return {
             "type": "object",
@@ -35,7 +35,7 @@ class GetPromptsToolHandler(BaseTool):
             "required": [],
         }
 
-    async def execute(self, arguments: Dict[str, Any]) -> List[TextContent]:
+    async def execute(self, arguments: dict[str, Any]) -> list[TextContent]:
         """Execute the tool with the given arguments.
 
         Args:

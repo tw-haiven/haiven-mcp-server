@@ -12,7 +12,7 @@ import subprocess
 import sys
 
 
-async def test_mcp_server_stdio():
+async def test_mcp_server_stdio() -> None:
     """Test the MCP server using stdio (how Windsurf communicates with it)."""
     print("🧪 Testing Haiven MCP Server for Windsurf...")
 
@@ -46,11 +46,16 @@ async def test_mcp_server_stdio():
         }
 
         print("📤 Sending initialization request...")
-        process.stdin.write(json.dumps(init_request) + "\n")
-        process.stdin.flush()
+        if process.stdin is not None:
+            process.stdin.write(json.dumps(init_request) + "\n")
+            process.stdin.flush()
 
         # Read response
-        response_line = process.stdout.readline()
+        if process.stdout is not None:
+            response_line = process.stdout.readline()
+        else:
+            print("❌ No stdout available")
+            return
         print(f"📥 Received: {response_line.strip()}")
 
         if response_line.strip():
@@ -68,10 +73,15 @@ async def test_mcp_server_stdio():
                     }
 
                     print("📤 Requesting tools list...")
-                    process.stdin.write(json.dumps(tools_request) + "\n")
-                    process.stdin.flush()
+                    if process.stdin is not None:
+                        process.stdin.write(json.dumps(tools_request) + "\n")
+                        process.stdin.flush()
 
-                    tools_response = process.stdout.readline()
+                    if process.stdout is not None:
+                        tools_response = process.stdout.readline()
+                    else:
+                        print("❌ No stdout available")
+                        return
                     print(f"📥 Tools response: {tools_response.strip()}")
 
                     if tools_response.strip():
@@ -93,9 +103,10 @@ async def test_mcp_server_stdio():
             print("❌ No response received")
 
         # Check for any errors
-        stderr_output = process.stderr.read()
-        if stderr_output:
-            print(f"⚠️ Server stderr: {stderr_output}")
+        if process.stderr is not None:
+            stderr_output = process.stderr.read()
+            if stderr_output:
+                print(f"⚠️ Server stderr: {stderr_output}")
 
     except Exception as e:
         print(f"❌ Error during test: {e}")

@@ -2,7 +2,7 @@
 
 for file in "$@"; do
     file_extension=${file##*.}
-    
+
     commit_prefix="#"
     if [[ "$file_extension" == "js" ]]; then
         commit_prefix="//"

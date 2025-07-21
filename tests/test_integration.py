@@ -10,7 +10,7 @@ import os
 import httpx
 
 
-async def test_haiven_connectivity():
+async def test_haiven_connectivity() -> None:
     """Test basic connectivity to Haiven API and authentication behavior."""
 
     base_url = os.getenv("HAIVEN_API_URL", "https://haiven.your-company.com")
@@ -77,7 +77,7 @@ async def test_haiven_connectivity():
             print(f"   ✗ Error: {e}")
 
 
-async def test_mcp_server_components():
+async def test_mcp_server_components() -> None:
     """Test MCP server components without running the full server."""
 
     print("\n" + "=" * 60)
@@ -86,22 +86,12 @@ async def test_mcp_server_components():
 
     try:
         # Import the MCP server class
-        from src.mcp_server import HaivenMCPServer, PromptExecutionParams
-
-        # ToolRegistry import removed as it's not used
+        from src.mcp_server import HaivenMCPServer
 
         print("✓ MCP server imports work correctly")
 
-        # Test parameter validation
-        print("\n5. Testing parameter validation...")
-        try:
-            params = PromptExecutionParams(userinput="test input")
-            print(f"   ✓ Basic parameters: {params.userinput}")
-
-            params_with_options = PromptExecutionParams(userinput="test input", promptid="test-id", json=True)
-            print(f"   ✓ Extended parameters: json={params_with_options.json}")
-        except Exception as e:
-            print(f"   ✗ Parameter validation error: {e}")
+        # Test MCP server initialization
+        print("\n5. Testing MCP server initialization...")
 
         # Test MCP server initialization
         print("\n6. Testing MCP server initialization...")
@@ -115,12 +105,9 @@ async def test_mcp_server_components():
 
             # Test tool definitions
             print("\n7. Testing tool definitions...")
-            from mcp.types import ListToolsRequest
-
-            request = ListToolsRequest(method="tools/list")
-            tools_result = await server._handle_list_tools(request)
-            print(f"   ✓ Found {len(tools_result.tools)} tools:")
-            for tool in tools_result.tools:
+            tools = server.tool_registry.get_all_tools()
+            print(f"   ✓ Found {len(tools)} tools:")
+            for tool in tools:
                 print(f"     - {tool.name}: {tool.description}")
 
         except Exception as e:
@@ -134,7 +121,7 @@ async def test_mcp_server_components():
         return
 
 
-async def main():
+async def main() -> None:
     """Run all integration tests."""
     print("Haiven MCP Server Integration Test")
     print("=" * 60)

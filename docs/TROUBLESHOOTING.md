@@ -182,7 +182,7 @@ config = {
 config_with_cwd = {
     "mcpServers": {
         "haiven": {
-            "command": "python", 
+            "command": "python",
             "args": ["mcp_server.py"],
             "cwd": str(current_dir),
             "env": {
@@ -262,4 +262,4 @@ poetry show
 4. **Verify Haiven backend is running** (`curl http://localhost:8080/health`)
 5. **Share the exact error message** for more specific help
 
-**Most common fix**: Use the absolute path to `mcp_server.py` instead of relying on "cwd"! 
+**Most common fix**: Use the absolute path to `mcp_server.py` instead of relying on "cwd"!

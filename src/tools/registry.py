@@ -3,7 +3,7 @@
 Tool registry for Haiven MCP Server.
 """
 
-from typing import Any, Dict, List, Type
+from typing import Any
 
 from loguru import logger
 from mcp.types import TextContent, Tool
@@ -14,16 +14,16 @@ from .base_tool import BaseTool
 class ToolRegistry:
     """Registry for MCP tools."""
 
-    def __init__(self, client=None):
+    def __init__(self, client: Any = None) -> None:
         """Initialize the tool registry.
 
         Args:
             client: The HTTP client to use for API requests
         """
-        self.tools = {}
+        self.tools: dict[str, BaseTool] = {}
         self.client = client
 
-    def register_tool(self, tool_class: Type[BaseTool]) -> None:
+    def register_tool(self, tool_class: type[BaseTool]) -> None:
         """Register a tool with the registry.
 
         Args:
@@ -49,7 +49,7 @@ class ToolRegistry:
             raise ValueError(f"Tool not found: {name}")
         return self.tools[name]
 
-    def get_all_tools(self) -> List[Tool]:
+    def get_all_tools(self) -> list[Tool]:
         """Get all registered tools.
 
         Returns:
@@ -57,7 +57,7 @@ class ToolRegistry:
         """
         return [tool.get_tool_definition() for tool in self.tools.values()]
 
-    async def execute_tool(self, name: str, arguments: Dict[str, Any]) -> List[TextContent]:
+    async def execute_tool(self, name: str, arguments: dict[str, Any]) -> list[TextContent]:
         """Execute a tool by name.
 
         Args:

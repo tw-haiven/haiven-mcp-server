@@ -10,7 +10,7 @@ It allows AI assistants to discover and execute prompts from your Haiven instanc
 import asyncio
 import os
 import sys
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import httpx
 from loguru import logger
@@ -19,11 +19,7 @@ from mcp.server.stdio import stdio_server
 from mcp.types import TextContent
 
 # Import tools - use relative imports since we're in the src directory
-from .tools import (
-    GetPromptsToolHandler,
-    GetPromptTextToolHandler,
-    ToolRegistry,
-)
+from .tools import GetPromptsToolHandler, GetPromptTextToolHandler, ToolRegistry
 
 # Configure loguru
 logger.add(sys.stderr, level="INFO", format="{time} | {level} | {name}:{function}:{line} | {message}")
@@ -35,8 +31,8 @@ class HaivenMCPServer:
     def __init__(
         self,
         base_url: str = "http://localhost:8080",
-        session_cookie: Optional[str] = None,
-        api_key: Optional[str] = None,
+        session_cookie: str | None = None,
+        api_key: str | None = None,
     ):
         self.base_url = base_url.rstrip("/")
         self.server = Server("haiven-prompts")
@@ -70,21 +66,21 @@ class HaivenMCPServer:
         # Register tool handlers using new decorator API
         self._register_handlers()
 
-    def _register_tools(self):
+    def _register_tools(self) -> None:
         """Register all available tools."""
         self.tool_registry.register_tool(GetPromptsToolHandler)
         self.tool_registry.register_tool(GetPromptTextToolHandler)
 
-    def _register_handlers(self):
+    def _register_handlers(self) -> None:
         """Register MCP tool handlers using the new decorator API."""
 
         @self.server.list_tools()
-        async def list_tools() -> List[Any]:
+        async def list_tools() -> list[Any]:
             """List available tools."""
             return self.tool_registry.get_all_tools()
 
         @self.server.call_tool()
-        async def call_tool(name: str, arguments: Dict[str, Any]) -> List[TextContent]:
+        async def call_tool(name: str, arguments: dict[str, Any]) -> list[TextContent]:
             """Handle tool calls."""
             try:
                 return await self.tool_registry.execute_tool(name, arguments)
@@ -92,13 +88,13 @@ class HaivenMCPServer:
                 logger.error(f"Tool error: {str(e)}")
                 return [TextContent(type="text", text=f"Error: {str(e)}")]
 
-    async def run(self):
+    async def run(self) -> None:
         """Run the MCP server."""
         async with stdio_server() as (read_stream, write_stream):
             await self.server.run(read_stream, write_stream, self.server.create_initialization_options())
 
 
-async def main():
+async def main() -> None:
     """Main entry point."""
 
     # Parse command line arguments and environment variables
