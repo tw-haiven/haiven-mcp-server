@@ -19,7 +19,6 @@ nosetests.xml
 coverage.xml
 *.cover
 *.log
-!*.lock
 .git
 .mypy_cache
 .pytest_cache
@@ -77,4 +76,7 @@ config_examples/
 
 # Poetry
 # poetry.lock - needed for reproducible builds
+
+# Explicitly include lock files (must be at the end)
+!*.lock
 !poetry.lock
