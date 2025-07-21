@@ -14,6 +14,7 @@ on:
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: thoughtworks/haiven-mcp-server
+  PYTHON_VERSION: '3.11'
 
 permissions:
   contents: read
@@ -69,7 +70,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
+          python-version: ${{ env.PYTHON_VERSION }}
 
       - name: Install Poetry
         uses: snok/install-poetry@v1
@@ -153,8 +154,8 @@ jobs:
           output=$(docker run --rm --platform linux/amd64 test-amd64 python -c "
           import os
           print('API URL:', os.environ.get('HAIVEN_API_URL', 'not set'))
-          print('DISABLE AUTH:', os.environ.get('HAIVEN_DISABLE_AUTH', \
-            'not set'))
+          print('DISABLE AUTH:', \
+            os.environ.get('HAIVEN_DISABLE_AUTH', 'not set'))
           " 2>/dev/null || true)
 
           if echo "$output" | grep -q "API URL:"; then
@@ -213,8 +214,17 @@ jobs:
           echo "🧪 Testing Kaniko-built image..."
 
           # Test the built image
-          if docker run --rm ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ \
-            steps.meta-kaniko.outputs.version }} \
+          IMAGE_TAG="${{ steps.meta-kaniko.outputs.version }}"
+          FULL_IMAGE_NAME="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:$IMAGE_TAG"
+
+          # Check if image exists
+          if ! docker image inspect "$FULL_IMAGE_NAME" >/dev/null 2>&1; then
+            echo "❌ Kaniko image not found: $FULL_IMAGE_NAME"
+            exit 1
+          fi
+
+          if docker run --rm \
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:$IMAGE_TAG \
             python -c "import sys; print('Kaniko test passed')" 2>/dev/null | \
             grep -q "Kaniko test passed"; then
             echo "✅ Kaniko build test passed"
