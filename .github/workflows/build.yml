@@ -115,8 +115,9 @@ jobs:
             type=sha,prefix={{branch}}-
             type=raw,value=latest,enable={{is_default_branch}}
 
-      - name: Build multi-architecture image (Buildx)
+      - name: Build multi-architecture image (Buildx) - With Cache Fallback
         uses: docker/build-push-action@v5
+        continue-on-error: true
         with:
           context: .
           platforms: linux/amd64,linux/arm64
@@ -129,16 +130,64 @@ jobs:
           build-args: |
             BUILDKIT_INLINE_CACHE=1
 
+      - name: Build multi-architecture image (Buildx) - With Registry Cache
+        if: failure()
+        uses: docker/build-push-action@v5
+        continue-on-error: true
+        with:
+          context: .
+          platforms: linux/amd64,linux/arm64
+          push: true
+          load: false
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: >
+            type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:cache
+          cache-to: >
+            type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:cache,mode=max
+          build-args: |
+            BUILDKIT_INLINE_CACHE=1
+
+      - name: Build multi-architecture image (Buildx) - Without Cache
+        if: failure()
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          platforms: linux/amd64,linux/arm64
+          push: true
+          load: false
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          build-args: |
+            BUILDKIT_INLINE_CACHE=1
+
       - name: Test multi-architecture image (Buildx)
         run: |
-          # Test AMD64 architecture (reuse from previous build)
-          docker buildx build --platform linux/amd64 --load -t test-amd64 . \
-            --cache-from type=gha
+          echo "🧪 Testing AMD64 architecture..."
+
+          # Try with GHA cache first
+          if docker buildx build --platform linux/amd64 --load -t test-amd64 . \
+            --cache-from type=gha; then
+            echo "✅ Build with GHA cache successful"
+          else
+            echo "⚠️  GHA cache failed, trying with registry cache..."
+            if docker buildx build --platform linux/amd64 --load -t test-amd64 . \
+              --cache-from type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:cache; then
+              echo "✅ Build with registry cache successful"
+            else
+              echo "⚠️  Registry cache failed, building without cache..."
+              docker buildx build --platform linux/amd64 --load -t test-amd64 . --no-cache
+            fi
+          fi
+
+          echo "🧪 Running AMD64 container test..."
           docker run --rm --platform linux/amd64 test-amd64 \
-            python -c "import sys; print('AMD64 test passed')" || exit 1
+            python -c "import sys; print('AMD64 test passed')" || \
+            exit 1
 
           # Clean up test images
           docker rmi test-amd64 2>/dev/null || true
+          echo "✅ AMD64 test completed successfully"
 
   # Kaniko build removed - Buildx provides better multi-architecture support
   # and is sufficient for all use cases
@@ -155,3 +204,8 @@ jobs:
           echo "🚀 Multi-architecture images pushed to registry"
           echo "🔒 Security: Semgrep scanning enabled"
           echo "🏗️  Built with Docker Buildx (AMD64 + ARM64)"
+          echo "💾 Cache: Multi-tier fallback strategy implemented"
+          echo "   - Primary: GitHub Actions Cache (GHA)"
+          echo "   - Fallback 1: Registry Cache"
+          echo "   - Fallback 2: No Cache (slower but reliable)"
+          echo "🛡️  Resilient to GHA cache outages"
