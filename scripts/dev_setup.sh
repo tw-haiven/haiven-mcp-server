@@ -40,12 +40,12 @@ echo "4. 📋 Creating AI tool configs..."
 # Current directory for config
 CURRENT_DIR=$(pwd)
 
-# Claude Desktop config (using absolute path to avoid cwd issues)
+# Claude Desktop config (using absolute path to avoid path issues)
 cat > claude-desktop-config.json << EOF
 {
   "mcpServers": {
     "haiven-dev": {
-      "command": "python",
+      "command": "$CURRENT_DIR/.venv/bin/python",
       "args": ["$CURRENT_DIR/mcp_server.py"],
       "env": {
         "HAIVEN_API_URL": "http://localhost:8080",
@@ -56,13 +56,13 @@ cat > claude-desktop-config.json << EOF
 }
 EOF
 
-# Also create version with cwd for tools that support it
-cat > claude-desktop-config-with-cwd.json << EOF
+# Also create version with module import for tools that support it
+cat > claude-desktop-config-module.json << EOF
 {
   "mcpServers": {
     "haiven-dev": {
-      "command": "python",
-      "args": ["mcp_server.py"],
+      "command": "$CURRENT_DIR/.venv/bin/python",
+      "args": ["-m", "src.mcp_server"],
       "cwd": "$CURRENT_DIR",
       "env": {
         "HAIVEN_API_URL": "http://localhost:8080",
@@ -74,7 +74,7 @@ cat > claude-desktop-config-with-cwd.json << EOF
 EOF
 
 echo "✅ Created claude-desktop-config.json (absolute path - recommended)"
-echo "✅ Created claude-desktop-config-with-cwd.json (fallback)"
+echo "✅ Created claude-desktop-config-module.json (module import)"
 
 echo ""
 echo "🎉 Development setup complete!"
@@ -86,8 +86,8 @@ echo "2. Copy claude-desktop-config.json to ~/.config/claude/config.json"
 echo "3. Restart your AI tool"
 echo "4. Ask: 'What Haiven prompts are available?'"
 echo ""
-echo "💡 If you get 'cwd' errors, use claude-desktop-config.json (absolute path)"
-echo "   If that doesn't work, try claude-desktop-config-with-cwd.json"
+echo "💡 Use claude-desktop-config.json (absolute path) for most reliable setup"
+echo "   If that doesn't work, try claude-desktop-config-module.json"
 echo ""
 echo "Quick test: source .env && poetry run python mcp_server.py"
 echo ""

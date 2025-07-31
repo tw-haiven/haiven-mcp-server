@@ -1,9 +1,8 @@
 {
   "mcpServers": {
     "haiven-prompts": {
-      "command": "python",
-      "args": ["mcp_server.py"],
-      "cwd": "/path/to/haiven/mcp-server",
+      "command": "/full/path/to/your/haiven-mcp-server/.venv/bin/python",
+      "args": ["/full/path/to/your/haiven-mcp-server/mcp_server.py"],
       "env": {
         "HAIVEN_API_URL": "http://localhost:8080",
         "HAIVEN_DISABLE_AUTH": "true"

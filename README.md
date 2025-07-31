@@ -1,17 +1,8 @@
 # 🚀 Haiven MCP Server
 
-**Connect ANY MCP-compatible AI tool to your organization's Haiven AI system**
+**Seamlessly connect any MCP-compatible AI tool to your organization’s Haiven servers and access expertly crafted prompts directly within your tools.**
 
 ## 📋 **Prerequisites**
-
-- **Docker** - [Download here](https://docker.com)
-  ```bash
-  # macOS: brew install --cask docker
-  # Ubuntu: sudo apt install docker.io
-  # Windows: Download Docker Desktop
-  ```
-
-## 🎯 **Installation Modes**
 
 | Mode | Prerequisites | Use Case | Setup |
 |------|--------------|----------|-------|
@@ -33,60 +24,16 @@
 
 ## 🚀 **Quick Start**
 
-### **Docker Installation**
-```bash
-# macOS/Windows
-docker run -i --rm \
-  -e HAIVEN_API_KEY="your-api-key" \
-  -e HAIVEN_API_URL="http://host.docker.internal:8080" \
-  --add-host=host.docker.internal:host-gateway \
-  ghcr.io/tw-haiven/haiven-mcp-server:latest
+> **💡 Automated Setup (Recommended)**:
+> ```bash
+> ./scripts/install.sh
+> ```
+> This detects your system and generates the perfect configuration automatically!
 
-# Linux
-docker run -i --rm \
-  -e HAIVEN_API_KEY="your-api-key" \
-  -e HAIVEN_API_URL="http://host.docker.internal:8080" \
-  ghcr.io/tw-haiven/haiven-mcp-server:latest
-```
-
-### **AI Tool Configuration**
-
-**Docker Configuration (Recommended)**:
-```json
-{
-  "mcpServers": {
-    "haiven-prompts": {
-      "command": "docker",
-      "args": [
-        "run", "-i", "--rm",
-        "-e", "HAIVEN_API_KEY=your-key",
-        "-e", "HAIVEN_API_URL=http://host.docker.internal:8080",
-        "--add-host=host.docker.internal:host-gateway",
-        "ghcr.io/tw-haiven/haiven-mcp-server:latest"
-      ]
-    }
-  }
-}
-```
-
-**Local Python Configuration**:
-```json
-{
-  "mcpServers": {
-    "haiven-prompts": {
-      "command": "python",
-      "args": ["mcp_server.py"],
-      "cwd": "/path/to/haiven/mcp-server",
-      "env": {
-        "HAIVEN_API_URL": "https://your-haiven-instance.com",
-        "HAIVEN_API_KEY": "your_api_key_generated_by_admin"
-      }
-    }
-  }
-}
-```
-
-**See `config_examples/` for more configuration options.**
+**For detailed setup instructions, see:**
+- **End Users**: [USER_SETUP_GUIDE.md](docs/USER_SETUP_GUIDE.md)
+- **Developers**: [DEVELOPER_GUIDE.md](docs/DEVELOPER_GUIDE.md)
+- **Troubleshooting**: [TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md)
 
 ## 🔑 **Getting Your API Key**
 
@@ -103,14 +50,13 @@ docker run -i --rm \
 - **Claude Desktop** - Anthropic's desktop app
 - **VS Code** - With AI extensions (Claude, Codeium, etc.)
 - **Cursor** - AI-powered code editor
-- **Zed** - Modern code editor with AI features
 - **Any MCP-compatible tool** - Following the Model Context Protocol standard
 
 ## 🎉 **What Users Get**
 
 After setup, users can:
 - 💬 Ask their AI tool: "What Haiven prompts are available?"
-- 🚀 Execute prompts: "Using Haiven prompt create user story splitup for the jira ticket JIRA-1234"
+- 🚀 Execute haiven prompts implicitly : "Using Haiven prompt create user story splitup for the jira ticket JIRA-1234"
 
 ## 🔧 **For IT Teams**
 

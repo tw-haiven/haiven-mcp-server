@@ -6,6 +6,10 @@ This guide shows how to quickly set up the MCP server for local development with
 
 💡 **Super Quick Setup**: Run `./dev_setup.sh` (Mac/Linux) or `python dev_setup.py` (All platforms) to automate most of this process!
 
+> **💡 Even Quicker**: For general setup, try `./scripts/install.sh` first!
+
+> **Note for Developers**: This guide focuses on Python setup for local development and debugging. For production deployment or if you prefer containerized environments, see the Docker setup in [USER_SETUP_GUIDE.md](USER_SETUP_GUIDE.md#option-a-docker-setup-recommended).
+
 ## 🚀 **Quick Start (5 minutes)**
 
 ### **1. Start Local Haiven Backend**
@@ -40,9 +44,8 @@ poetry run python -m src.mcp_server --help
 {
   "mcpServers": {
     "haiven-dev": {
-      "command": "python",
-      "args": ["mcp_server.py"],
-      "cwd": "/path/to/haiven-mcp-server",
+      "command": "/full/path/to/your/haiven-mcp-server/.venv/bin/python",
+      "args": ["/full/path/to/your/haiven-mcp-server/mcp_server.py"],
       "env": {
         "HAIVEN_API_URL": "http://localhost:8080",
         "HAIVEN_DISABLE_AUTH": "true"
@@ -57,9 +60,8 @@ poetry run python -m src.mcp_server --help
 {
   "mcp.servers": {
     "haiven-dev": {
-      "command": "python",
-      "args": ["mcp_server.py"],
-      "cwd": "/path/to/haiven-mcp-server",
+      "command": "/full/path/to/your/haiven-mcp-server/.venv/bin/python",
+      "args": ["/full/path/to/your/haiven-mcp-server/mcp_server.py"],
       "env": {
         "HAIVEN_API_URL": "http://localhost:8080",
         "HAIVEN_DISABLE_AUTH": "true"
@@ -225,18 +227,16 @@ You can have multiple MCP servers configured:
 {
   "mcpServers": {
     "haiven-local": {
-      "command": "python",
-      "args": ["-m", "src.mcp_server"],
-      "cwd": "/path/to/haiven-mcp-server",
+      "command": "/full/path/to/your/haiven-mcp-server/.venv/bin/python",
+      "args": ["/full/path/to/your/haiven-mcp-server/mcp_server.py"],
       "env": {
         "HAIVEN_API_URL": "http://localhost:8080",
         "HAIVEN_DISABLE_AUTH": "true"
       }
     },
     "haiven-staging": {
-      "command": "python",
-      "args": ["-m", "src.mcp_server"],
-      "cwd": "/path/to/haiven-mcp-server",
+      "command": "/full/path/to/your/haiven-mcp-server/.venv/bin/python",
+      "args": ["/full/path/to/your/haiven-mcp-server/mcp_server.py"],
       "env": {
         "HAIVEN_API_URL": "https://staging.haiven.com",
         "HAIVEN_API_KEY": "staging-key"
@@ -245,6 +245,39 @@ You can have multiple MCP servers configured:
   }
 }
 ```
+
+---
+
+## 🐳 **Docker Alternative for Development**
+
+If you prefer using Docker for development (useful for consistent environments):
+
+```bash
+# Test with Docker
+docker run -i --rm \
+  -e HAIVEN_API_URL="http://host.docker.internal:8080" \
+  -e HAIVEN_DISABLE_AUTH="true" \
+  ghcr.io/tw-haiven/haiven-mcp-server:latest
+```
+
+**AI Tool Configuration for Docker Development:**
+```json
+{
+  "mcpServers": {
+    "haiven-dev-docker": {
+      "command": "docker",
+      "args": [
+        "run", "-i", "--rm",
+        "-e", "HAIVEN_API_URL=http://host.docker.internal:8080",
+        "-e", "HAIVEN_DISABLE_AUTH=true",
+        "ghcr.io/tw-haiven/haiven-mcp-server:latest"
+      ]
+    }
+  }
+}
+```
+
+> **Note:** Docker setup is great for consistent environments but Python setup is better for debugging and development iteration.
 
 ---
 
@@ -258,7 +291,7 @@ python mcp_server.py
 poetry run python mcp_server.py
 ```
 
-This is useful for AI tools or scripts that do not support the 'cwd' setting or the '-m' module syntax. The thin wrapper script at the root will launch the main server logic from 'src/mcp_server.py'.
+This is useful for AI tools or scripts that do not support the '-m' module syntax. The thin wrapper script at the root will launch the main server logic from 'src/mcp_server.py'.
 
 > **Note:** Both 'python mcp_server.py' (root) and 'python -m src.mcp_server' (module) are supported and will work identically.
 

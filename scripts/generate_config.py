@@ -39,6 +39,11 @@ def get_python_path() -> str:
     return python_path
 
 
+def check_docker_available() -> bool:
+    """Check if Docker is available on the system"""
+    return shutil.which("docker") is not None
+
+
 def main() -> None:
     print("🔧 MCP Configuration Generator")
     print("=" * 35)
@@ -46,6 +51,15 @@ def main() -> None:
 
     # Check if Python 3.11+ is available, else suggest installation instructions
     print("✅ Python found")
+
+    # Check if Docker is available
+    docker_available = check_docker_available()
+    if docker_available:
+        print("✅ Docker found")
+    else:
+        print("⚠️  Docker not found (will use Python setup only)")
+        print("💡 Mac users: Consider installing Colima as a lighter alternative to Docker Desktop")
+        print("   Install with: brew install colima && colima start")
 
     # Get the root folder for the project
     project_dir = Path(__file__).parent.parent
@@ -108,13 +122,37 @@ def main() -> None:
 
     print()
 
-    # Get the best Python path to use
-    python_path = get_python_path()
-    print(f"✅ Using Python: {python_path}")
-
     # Generate configurations
     print("📋 Generated Configurations:")
     print("=" * 30)
+
+    # Docker configuration (if available)
+    if docker_available:
+        config_docker: dict[str, Any] = {
+            "mcpServers": {
+                "haiven-prompts": {
+                    "command": "docker",
+                    "args": ["run", "-i", "--rm", "ghcr.io/tw-haiven/haiven-mcp-server:latest"],
+                    "env": {"HAIVEN_API_URL": haiven_url},
+                }
+            }
+        }
+
+        if use_auth:
+            config_docker["mcpServers"]["haiven-prompts"]["args"].extend(["-e", f"HAIVEN_API_KEY={api_key}"])
+        else:
+            config_docker["mcpServers"]["haiven-prompts"]["args"].extend(["-e", "HAIVEN_DISABLE_AUTH=true"])
+
+        print("\n🎯 Option 1: Docker (RECOMMENDED - easiest setup)")
+        print(json.dumps(config_docker, indent=2))
+
+        # Write Docker config to file
+        with open("mcp-config-docker.json", "w") as f:
+            json.dump(config_docker, f, indent=2)
+
+    # Get the best Python path to use
+    python_path = get_python_path()
+    print(f"✅ Using Python: {python_path}")
 
     # 1. Configuration with full path (most reliable)
     config_fullpath: dict[str, Any] = {
@@ -132,15 +170,16 @@ def main() -> None:
     else:
         config_fullpath["mcpServers"]["haiven"]["env"]["HAIVEN_DISABLE_AUTH"] = "true"
 
-    print("\n✅ Option 1: Full path (RECOMMENDED - most reliable)")
+    option_number = "2" if docker_available else "1"
+    print(f"\n✅ Option {option_number}: Full path (Python - most reliable)")
     print(json.dumps(config_fullpath, indent=2))
 
-    # 2. Configuration with cwd (if supported)
-    config_cwd: dict[str, Any] = {
+    # 2. Configuration with module import
+    config_module: dict[str, Any] = {
         "mcpServers": {
             "haiven": {
-                "command": "python",
-                "args": ["mcp_server.py"],
+                "command": python_path,
+                "args": ["-m", "src.mcp_server"],
                 "cwd": str(project_dir),
                 "env": {"HAIVEN_API_URL": haiven_url},
             }
@@ -148,19 +187,20 @@ def main() -> None:
     }
 
     if use_auth:
-        config_cwd["mcpServers"]["haiven"]["env"]["HAIVEN_API_KEY"] = api_key
+        config_module["mcpServers"]["haiven"]["env"]["HAIVEN_API_KEY"] = api_key
     else:
-        config_cwd["mcpServers"]["haiven"]["env"]["HAIVEN_DISABLE_AUTH"] = "true"
+        config_module["mcpServers"]["haiven"]["env"]["HAIVEN_DISABLE_AUTH"] = "true"
 
-    print("\n✅ Option 2: With cwd (if your AI tool supports it)")
-    print(json.dumps(config_cwd, indent=2))
+    option_number = "3" if docker_available else "2"
+    print(f"\n✅ Option {option_number}: Module import (if your tool supports it)")
+    print(json.dumps(config_module, indent=2))
 
     # 3. Configuration with Poetry
     config_poetry: dict[str, Any] = {
         "mcpServers": {
             "haiven": {
                 "command": "poetry",
-                "args": ["run", "python", "mcp_server.py"],
+                "args": ["run", "python", str(script_path)],
                 "cwd": str(project_dir),
                 "env": {"HAIVEN_API_URL": haiven_url},
             }
@@ -172,26 +212,33 @@ def main() -> None:
     else:
         config_poetry["mcpServers"]["haiven"]["env"]["HAIVEN_DISABLE_AUTH"] = "true"
 
-    print("\n✅ Option 3: With Poetry (if you prefer)")
+    option_number = "4" if docker_available else "3"
+    print(f"\n✅ Option {option_number}: With Poetry (if you prefer)")
     print(json.dumps(config_poetry, indent=2))
 
     # Write to files
     with open("mcp-config-fullpath.json", "w") as f:
         json.dump(config_fullpath, f, indent=2)
 
-    with open("mcp-config-cwd.json", "w") as f:
-        json.dump(config_cwd, f, indent=2)
+    with open("mcp-config-module.json", "w") as f:
+        json.dump(config_module, f, indent=2)
 
     with open("mcp-config-poetry.json", "w") as f:
         json.dump(config_poetry, f, indent=2)
 
     print("\n📁 Configuration files created:")
-    print("   - mcp-config-fullpath.json (recommended)")
-    print("   - mcp-config-cwd.json")
+    if docker_available:
+        print("   - mcp-config-docker.json (RECOMMENDED)")
+    print("   - mcp-config-fullpath.json")
+    print("   - mcp-config-module.json")
     print("   - mcp-config-poetry.json")
     print()
 
     print("📋 How to use:")
+    if docker_available:
+        print("🎯 RECOMMENDED: Use Option 1 (Docker) - it's the easiest setup!")
+        print("   Just copy the Docker configuration and you're done.")
+        print()
     print("1. Copy the content from one of the options above")
     print("2. Paste it into your AI tool's MCP configuration")
     print("3. Restart your AI tool")
@@ -204,7 +251,10 @@ def main() -> None:
     print("   Cursor: ~/.cursor/config.json")
     print()
 
-    print("🎯 Start with Option 1 (full path) - it's the most reliable!")
+    if docker_available:
+        print("🎯 Start with Option 1 (Docker) - it's the easiest and most reliable!")
+    else:
+        print("🎯 Start with Option 1 (full path) - it's the most reliable!")
 
 
 if __name__ == "__main__":
