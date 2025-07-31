@@ -74,8 +74,8 @@ This MCP server:
 
 ## 🆘 **Need Help?**
 
-- **End Users**: See [USER_SETUP_GUIDE.md](USER_SETUP_GUIDE.md) for detailed setup instructions
-- **Developers**: See [DEVELOPER_GUIDE.md](DEVELOPER_GUIDE.md) for local development setup
+- **End Users**: See [USER_SETUP_GUIDE.md](docs/USER_SETUP_GUIDE.md) for detailed setup instructions
+- **Developers**: See [DEVELOPER_GUIDE.md](docs/DEVELOPER_GUIDE.md) for local development setup
 - **IT Teams**: See [DEVELOPER_GUIDE.md](docs/DEVELOPER_GUIDE.md) for deployment details
 - **Troubleshooting**: Check the appropriate guide for common issues
 - **Can't find your API key?** Ask your Haiven administrator
