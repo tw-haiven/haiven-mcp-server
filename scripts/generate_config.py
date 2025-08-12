@@ -44,9 +44,69 @@ def check_docker_available() -> bool:
     return shutil.which("docker") is not None
 
 
+def get_tool_config_location(tool_name: str) -> str:
+    """Get the configuration file location for the specified AI tool"""
+    config_locations = {
+        "claude": {
+            "macos": "~/Library/Application Support/Claude/claude_desktop_config.json",
+            "linux": "~/.config/claude/config.json",
+            "windows": "%APPDATA%\\Claude\\claude_desktop_config.json",
+        },
+        "cursor": {"macos": "~/.cursor/config.json", "linux": "~/.cursor/config.json", "windows": "%APPDATA%\\Cursor\\config.json"},
+        "vscode": {
+            "macos": "~/Library/Application Support/Code/User/settings.json",
+            "linux": "~/.config/Code/User/settings.json",
+            "windows": "%APPDATA%\\Code\\User\\settings.json",
+        },
+        "zed": {
+            "macos": "~/Library/Application Support/Zed/User/settings.json",
+            "linux": "~/.config/Zed/User/settings.json",
+            "windows": "%APPDATA%\\Zed\\User\\settings.json",
+        },
+    }
+
+    # Detect OS
+    if sys.platform == "darwin":
+        os_name = "macos"
+    elif sys.platform.startswith("linux"):
+        os_name = "linux"
+    elif sys.platform == "win32":
+        os_name = "windows"
+    else:
+        os_name = "linux"  # Default fallback
+
+    if tool_name in config_locations and os_name in config_locations[tool_name]:
+        return config_locations[tool_name][os_name]
+
+    return "Check your tool's documentation for config location"
+
+
 def main() -> None:
     print("🔧 MCP Configuration Generator")
     print("=" * 35)
+    print()
+
+    # Ask which AI tool the user is using
+    print("🎯 Which AI tool are you setting up?")
+    print("1. Claude Desktop")
+    print("2. Cursor")
+    print("3. VS Code")
+    print("4. Zed")
+    print("5. Other MCP-compatible tool")
+
+    tool_choice = input("Enter choice (1-5): ").strip()
+
+    tool_names = {"1": "claude", "2": "cursor", "3": "vscode", "4": "zed", "5": "other"}
+
+    selected_tool = tool_names.get(tool_choice, "other")
+
+    if selected_tool != "other":
+        config_location = get_tool_config_location(selected_tool)
+        print(f"✅ Config location for {selected_tool.title()}: {config_location}")
+    else:
+        config_location = "Check your tool's documentation"
+        print("✅ You'll need to check your tool's documentation for the config location")
+
     print()
 
     # Check if Python 3.11+ is available, else suggest installation instructions
@@ -245,11 +305,19 @@ def main() -> None:
     print("4. Test: Ask 'What Haiven prompts are available?'")
     print()
 
-    print("📱 Configuration locations:")
-    print("   Claude Desktop: ~/.config/claude/config.json")
-    print("   VS Code: Settings → search for 'mcp'")
-    print("   Cursor: ~/.cursor/config.json")
+    print(f"📱 Configuration location for {selected_tool.title()}:")
+    print(f"   {config_location}")
     print()
+
+    if selected_tool == "claude":
+        print("💡 For Claude Desktop, the config file should contain your MCP servers configuration.")
+        print("   If the file doesn't exist, create it with the content from one of the options above.")
+    elif selected_tool == "vscode":
+        print("💡 For VS Code, add the MCP configuration to your settings.json file.")
+        print("   You can access this via: Cmd+Shift+P → 'Preferences: Open Settings (JSON)'")
+    elif selected_tool == "cursor":
+        print("💡 For Cursor, the config file should contain your MCP servers configuration.")
+        print("   If the file doesn't exist, create it with the content from one of the options above.")
 
     if docker_available:
         print("🎯 Start with Option 1 (Docker) - it's the easiest and most reliable!")

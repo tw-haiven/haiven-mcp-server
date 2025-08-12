@@ -1,41 +1,74 @@
-# 🚀 Haiven MCP Server
+# Haiven MCP Server
 
-**Seamlessly connect any MCP-compatible AI tool to your organization’s Haiven servers and access expertly crafted prompts directly within your tools.**
+**Seamlessly connect any MCP-compatible AI tool to your organization's Haiven servers and access expertly crafted prompts directly within your tools.**
 
-## 📋 **Prerequisites**
+## **Quick Start**
 
-| Mode | Prerequisites | Use Case | Setup |
-|------|--------------|----------|-------|
-| **🐳 Docker (Recommended)** | Docker | End users, production | `docker run` |
-| **🐍 Python Local** | Python 3.11+, Poetry | Developers | `poetry install` |
-| **🏢 Enterprise** | Docker, Kubernetes | IT teams | Container orchestration |
+### **Option 1: Copy Configuration (Easiest)**
+**_You must have docker installed on your machine_**
 
-**Available Docker Images:**
-- `ghcr.io/tw-haiven/haiven-mcp-server:latest` - Latest stable release
-- `ghcr.io/tw-haiven/haiven-mcp-server:main-<sha>` - Specific commit builds
-- `ghcr.io/tw-haiven/haiven-mcp-server:v1.0.0` - Versioned releases (when available)
+- Copy the MCP server configuration below and add it to your AI tool's **existing MCP settings**.
 
-**Test the Docker image:**
-```bash
-./scripts/test_docker_image.sh [your-api-key] [your-api-url]
+- **Add this MCP server to your configuration:**
+```json
+"haiven-prompts": {
+  "command": "docker",
+  "args": [
+    "run", "-i", "--rm",
+    "-e", "HAIVEN_API_KEY=your-api-key-here",
+    "-e", "HAIVEN_API_URL=https://your-haiven-server.com",
+    "ghcr.io/tw-haiven/haiven-mcp-server:latest"
+  ]
+}
 ```
 
-> **Note**: Images are built with multi-architecture support (AMD64 + ARM64) using Docker Buildx for optimal compatibility across different platforms.
+- **Replace these values:**
+ --  `your-api-key-here` → Your API key from Haiven
+ -- `https://your-haiven-server.com` → Your organization's Haiven server URL
 
-## 🚀 **Quick Start**
+**Where to add the configuration:**
+Check your AI tool's official documentation for MCP server configuration settings. Look for:
+- "MCP servers" or "Model Context Protocol"
+- "External tools" or "Integrations"
+- Settings for adding custom servers
 
-> **💡 Automated Setup (Recommended)**:
-> ```bash
-> ./scripts/install.sh
-> ```
-> This detects your system and generates the perfect configuration automatically!
+**MCP Setup Resources:**
+- **[VS Code MCP Servers](https://code.visualstudio.com/docs/copilot/chat/mcp-servers)** - Comprehensive guide for VS Code
+- **[Claude Code MCP](https://docs.anthropic.com/en/docs/claude-code/mcp)** - Official Claude documentation
+- **[Cursor MCP Setup](https://docs.cursor.com/en/context/mcp#using-mcp-json)** - Cursor-specific instructions
+- **[MCP Protocol Overview](https://modelcontextprotocol.io/quickstart/user#understanding-mcp-servers)** - General MCP concepts
 
-**For detailed setup instructions, see:**
-- **End Users**: [USER_SETUP_GUIDE.md](docs/USER_SETUP_GUIDE.md)
-- **Developers**: [DEVELOPER_GUIDE.md](docs/DEVELOPER_GUIDE.md)
-- **Troubleshooting**: [TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md)
+**Example of where to add it:**
+If your config already has other MCP servers, add it alongside them:
+```json
+{
+  "mcpServers": {
+    "existing-server": { ... },
+    "haiven-prompts": {
+      "command": "docker",
+      "args": [
+        "run", "-i", "--rm",
+        "-e", "HAIVEN_API_KEY=your-api-key-here",
+        "-e", "HAIVEN_API_URL=https://your-haiven-server.com",
+        "ghcr.io/tw-haiven/haiven-mcp-server:latest"
+      ]
+    }
+  }
+}
+```
 
-## 🔑 **Getting Your API Key**
+### **Option 2: Advanced Setup**
+For advanced users or custom configurations, see [USER_SETUP_GUIDE.md](docs/USER_SETUP_GUIDE.md).
+
+---
+
+## **What You'll Need**
+
+- **An MCP-compatible AI tool** (Claude Desktop, VS Code, Cursor, etc.)
+- **Access to your organization's Haiven system**
+- **API key** from your Haiven instance
+
+## **Get Your API Key**
 
 1. Open Haiven in your browser
 2. Login with your work credentials
@@ -43,46 +76,41 @@
 4. Click "Generate New API Key"
 5. Copy the key immediately
 
-![a.gif](./docs/api-keys.gif)
+![API Keys Generation](./docs/api-keys.gif)
 
-## 🎯 **Compatible AI Tools**
+## **What You Get**
 
-- **Claude Desktop** - Anthropic's desktop app
-- **VS Code** - With AI extensions (Claude, Codeium, etc.)
-- **Cursor** - AI-powered code editor
-- **Any MCP-compatible tool** - Following the Model Context Protocol standard
+After setup, you can:
+- Ask your AI tool: "What Haiven prompts are available?"
+- Execute Haiven prompts: "Using Haiven prompt create user story splitup for JIRA-1234"
 
-## 🎉 **What Users Get**
+---
 
-After setup, users can:
-- 💬 Ask their AI tool: "What Haiven prompts are available?"
-- 🚀 Execute haiven prompts implicitly : "Using Haiven prompt create user story splitup for the jira ticket JIRA-1234"
-
-## 🔧 **For IT Teams**
+## **For IT Teams**
 
 This MCP server:
-- ✅ Uses standard MCP protocol (JSON-RPC 2.0 over stdin/stdout)
-- ✅ Supports API key authentication
-- ✅ No data stored locally - all queries go to your Haiven server
-- ✅ Works with **any MCP-compatible AI tool**
-- ✅ **Multi-architecture Docker support** (AMD64 and ARM64)
+- Uses standard MCP protocol (JSON-RPC 2.0 over stdin/stdout)
+- Supports API key authentication
+- No data stored locally - all queries go to your Haiven server
+- Works with **any MCP-compatible AI tool**
+- **Multi-architecture Docker support** (AMD64 and ARM64)
 
 ### **Deployment Options**
 - **Docker**: Container available for enterprise deployment (recommended)
 - **Individual install**: Users run Docker commands on their machines
 - **Centralized**: Deploy via software distribution systems
 
-## 🆘 **Need Help?**
+---
 
-- **End Users**: See [USER_SETUP_GUIDE.md](docs/USER_SETUP_GUIDE.md) for detailed setup instructions
-- **Developers**: See [DEVELOPER_GUIDE.md](docs/DEVELOPER_GUIDE.md) for local development setup
-- **IT Teams**: See [DEVELOPER_GUIDE.md](docs/DEVELOPER_GUIDE.md) for deployment details
-- **Troubleshooting**: Check the appropriate guide for common issues
-- **Can't find your API key?** Ask your Haiven administrator
+## **Need Help?**
+
+- **End Users**: [USER_SETUP_GUIDE.md](docs/USER_SETUP_GUIDE.md) - Detailed setup instructions
+- **Developers**: [DEVELOPER_GUIDE.md](docs/DEVELOPER_GUIDE.md) - Local development setup
+- **Troubleshooting**: [TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md) - Common issues and solutions
 
 ---
 
-**Ready to connect your team to Haiven AI? Works with any MCP-compatible tool! 🚀**
+**Ready to connect your team to Haiven AI? Works with any MCP-compatible tool!**
 
 ## Overview
 
