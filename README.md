@@ -1,9 +1,5 @@
 # Haiven MCP Server
 
-[![Docker Pulls](https://img.shields.io/docker/pulls/ghcr.io/tw-haiven/haiven-mcp-server?logo=docker)](https://github.com/tw-haiven/haiven-mcp-server/pkgs/container/haiven-mcp-server)
-[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE.md)
-[![MCP](https://img.shields.io/badge/Model%20Context%20Protocol-compatible-blue)](https://modelcontextprotocol.io/)
-
 Connect your AI tools directly to your organization's Haiven prompts. Use expertly crafted prompts from Claude Desktop, VS Code, Cursor, and other AI tools without switching apps.
 
 ## What You Get
