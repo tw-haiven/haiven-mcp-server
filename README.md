@@ -4,20 +4,22 @@ Connect your AI tools directly to your organization's Haiven prompts. Use expert
 
 ## What You Get
 
-✅ **Access your organization's expert prompts** directly in your AI tools  
-✅ **Ready-to-use prompts** for user stories, code reviews, architecture decisions, PRDs, and more  
-✅ **No app switching** - stay in your current workflow  
-✅ **Works with any MCP-compatible tool** - Claude Desktop, VS Code, Cursor, and more  
-✅ **Seamless integration** - prompts appear as if they're built into your AI tool  
-✅ **Context preservation** - your conversations continue uninterrupted  
+✅ **Access your organization's expert prompts** directly in your AI tools
+✅ **Ready-to-use prompts** for user stories, code reviews, architecture decisions, PRDs, and more
+✅ **No app switching** - stay in your current workflow
+✅ **Works with any MCP-compatible tool** - Claude Desktop, VS Code, Cursor, and more
+✅ **Seamless integration** - prompts appear as if they're built into your AI tool
+✅ **Context preservation** - your conversations continue uninterrupted
 
 ## Quick Start
 
 **Prerequisites**: Docker installed on your machine
 
 1. **Get your API key** from your Haiven web interface (API Keys → Generate New API Key)
-   
+
    **🔒 Security note**: Store your API key securely and never commit it to version control
+
+   **For detailed steps:** See [Get Your API Key](#get-your-api-key) section below
 
 2. **Add this configuration to your AI tool's MCP settings**:
    ```json
@@ -31,7 +33,7 @@ Connect your AI tools directly to your organization's Haiven prompts. Use expert
      ]
    }
    ```
-   
+
    **Where to add it:**
    - **Claude Desktop**: `~/Library/Application Support/Claude/config.json` (Mac) or `%APPDATA%\Claude\config.json` (Windows)
    - **VS Code**: Settings → Extensions → search "mcp" → Configure MCP servers
@@ -79,10 +81,24 @@ After setup, try these commands in your AI tool:
 
 **For more help:** See [Complete Troubleshooting Guide](docs/TROUBLESHOOTING.md)
 
+## Get Your API Key
+
+1. **Open Haiven in your browser** (the web version your organization uses)
+2. **Login** with your work credentials (OKTA/SSO)
+3. **Click "API Keys"** in the top navigation menu
+4. **Click "Generate New API Key"**
+5. **Fill out the form:**
+   - Name: "AI Tool Integration"
+   - Expiration: 30 days (or your preference)
+6. **Copy the generated key** - **Save it immediately!** You won't see it again
+7. **Store it safely** (password manager recommended)
+
+![API Keys Generation](./docs/api-keys.gif)
+
 ## Detailed Documentation
 
 - **[Complete Setup Guide](docs/USER_SETUP_GUIDE.md)** - Step-by-step instructions for all AI tools
-- **[Troubleshooting](docs/TROUBLESHOOTING.md)** - Common issues and solutions  
+- **[Troubleshooting](docs/TROUBLESHOOTING.md)** - Common issues and solutions
 - **[Developer Guide](docs/DEVELOPER_GUIDE.md)** - Local development and contributing
 
 ---
