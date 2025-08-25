@@ -4,12 +4,12 @@ Connect your AI tools directly to your organization's Haiven prompts. Use expert
 
 ## What You Get
 
-✅ **Access your organization's expert prompts** directly in your AI tools
-✅ **Ready-to-use prompts** for user stories, code reviews, architecture decisions, PRDs, and more
-✅ **No app switching** - stay in your current workflow
-✅ **Works with any MCP-compatible tool** - Claude Desktop, VS Code, Cursor, and more
-✅ **Seamless integration** - prompts appear as if they're built into your AI tool
-✅ **Context preservation** - your conversations continue uninterrupted
+- ✅ **Access your organization's expert prompts** directly in your AI tools
+- ✅ **Ready-to-use prompts** for user stories, code reviews, architecture decisions, PRDs, and more
+- ✅ **No app switching** - stay in your current workflow
+- ✅ **Works with any MCP-compatible tool** - Claude Desktop, VS Code, Cursor, and more
+- ✅ **Seamless integration** - prompts appear as if they're built into your AI tool
+- ✅ **Context preservation** - your conversations continue uninterrupted
 
 ## Quick Start
 
@@ -192,6 +192,10 @@ This MCP server:
 5. Submit a pull request
 
 **Pre-commit hooks**: Install with `pip install pre-commit && pre-commit install`
+
+## Privacy
+
+The MCP server implementation does not collect, process, or transmit any client-specific data, user inputs, conversation history, or session information. It operates purely as a content delivery mechanism for accessing the Haiven prompt library. Unlike the Haiven web interface, **prompts execute through your AI tool's configured LLM** (not your enterprise's controlled deployment). Ensure your AI tool usage complies with organizational policies.
 
 ## License
 
