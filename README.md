@@ -10,6 +10,9 @@ Connect your AI tools directly to your organization's Haiven prompts. Use expert
 - ✅ **Works with any MCP-compatible tool** - Claude Desktop, VS Code, Cursor, and more
 - ✅ **Seamless integration** - prompts appear as if they're built into your AI tool
 - ✅ **Context preservation** - your conversations continue uninterrupted
+- ✅ **Native MCP prompts** - each Haiven prompt appears as a first-class MCP prompt
+- ✅ **Smart caching** - faster performance with intelligent content caching
+- ✅ **Backward compatibility** - existing tools still work alongside new prompt interface
 
 ## Quick Start
 
@@ -60,9 +63,24 @@ After completing the setup, verify everything works:
 
 ## Basic Usage
 
-After setup, try these commands in your AI tool:
+After setup, you can access your Haiven prompts in two ways:
 
-**See available prompts:**
+### **Native MCP Prompts (Recommended)**
+Each Haiven prompt appears as a first-class MCP prompt in your AI tool:
+
+**Direct prompt invocation:**
+> "Use the ADR prompt to help me document this architecture decision"
+
+**Browse available prompts:**
+> "Show me all available Haiven prompts"
+
+**Use prompts with context:**
+> "Use the user story prompt to break down this feature request"
+
+### **Legacy Tools (Backward Compatibility)**
+For clients that need the tool-based interface:
+
+**List all prompts:**
 > "What Haiven prompts are available?"
 
 **Use a specific prompt:**
@@ -111,15 +129,26 @@ This MCP server provides a bridge between AI applications and the Haiven AI prom
 
 **Key Features:**
 - **Standard MCP Protocol**: JSON-RPC 2.0 over stdin/stdout
+- **Native MCP Prompts**: Each Haiven prompt appears as a first-class MCP prompt
+- **Smart Caching**: Two-tier caching (metadata + content) for optimal performance
 - **API Key Authentication**: Secure connection to your Haiven server
-- **No Local Storage**: All queries proxy directly to your Haiven server
+- **Backward Compatibility**: Legacy tools still work alongside new prompt interface
 - **Multi-Architecture Docker**: Supports AMD64 and ARM64
 - **Security Hardened**: Comprehensive security scanning and validation
 
-### Available Tools
+### Available Interfaces
+
+#### **Native MCP Prompts (Primary Interface)**
+Each Haiven prompt is registered as a native MCP prompt with:
+- **Direct invocation** by prompt identifier (e.g., `/adr-9e6a21eb`)
+- **Rich metadata** including title, description, and categories
+- **Smart caching** for optimal performance
+- **Seamless integration** with MCP-compatible AI tools
+
+#### **Legacy Tools (Backward Compatibility)**
 
 `get_prompts`
-Retrieves all available prompts with their metadata and follow-ups.
+Retrieves all available prompts with their metadata from the cached prompt service.
 
 **Parameters**: None
 
@@ -143,8 +172,8 @@ Retrieves all available prompts with their metadata and follow-ups.
 }
 ```
 
-`get_prompt_tex`t
-Fetches the content of a specific prompt by ID.
+`get_prompt_text`
+Fetches the content of a specific prompt by ID with full metadata.
 
 **Parameters**:
 - `prompt_id` (required): ID of the prompt to fetch
@@ -192,6 +221,8 @@ This MCP server:
 5. Submit a pull request
 
 **Pre-commit hooks**: Install with `pip install pre-commit && pre-commit install`
+
+**Testing**: Run tests with `poetry run pytest tests/ -v`
 
 ## Privacy
 

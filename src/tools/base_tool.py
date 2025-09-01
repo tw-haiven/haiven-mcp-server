@@ -12,13 +12,15 @@ from mcp.types import TextContent, Tool
 class BaseTool(abc.ABC):
     """Base class for all tool handlers."""
 
-    def __init__(self, client: Any = None) -> None:
+    def __init__(self, client: Any = None, server: Any = None) -> None:
         """Initialize the tool handler.
 
         Args:
             client: The HTTP client to use for API requests
+            server: The MCP server instance for accessing cached data
         """
         self.client = client
+        self.server = server
 
     @property
     @abc.abstractmethod

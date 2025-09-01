@@ -14,14 +14,16 @@ from .base_tool import BaseTool
 class ToolRegistry:
     """Registry for MCP tools."""
 
-    def __init__(self, client: Any = None) -> None:
+    def __init__(self, client: Any = None, server: Any = None) -> None:
         """Initialize the tool registry.
 
         Args:
             client: The HTTP client to use for API requests
+            server: The MCP server instance for accessing cached data
         """
         self.tools: dict[str, BaseTool] = {}
         self.client = client
+        self.server = server
 
     def register_tool(self, tool_class: type[BaseTool]) -> None:
         """Register a tool with the registry.
@@ -29,7 +31,7 @@ class ToolRegistry:
         Args:
             tool_class: The tool class to register
         """
-        tool_instance = tool_class(self.client)
+        tool_instance = tool_class(self.client, self.server)
         self.tools[tool_instance.name] = tool_instance
         logger.info(f"Registered tool: {tool_instance.name}")
 

@@ -6,7 +6,6 @@ Get prompts tool for Haiven MCP Server.
 import json
 from typing import Any
 
-import httpx
 from loguru import logger
 from mcp.types import TextContent
 
@@ -45,38 +44,26 @@ class GetPromptsToolHandler(BaseTool):
             A list of TextContent objects with the tool's response
         """
         try:
-            base_url = self.client.base_url if hasattr(self.client, "base_url") else ""
-            response = await self.client.get(f"{base_url}/api/prompts")
-            response.raise_for_status()
-
-            prompts_data = response.json()
-
-            # Filter prompts to only include the specified fields
-            filtered_prompts = []
-            for prompt in prompts_data:
-                filtered_prompt = {
-                    "identifier": prompt.get("identifier", ""),
-                    "title": prompt.get("title", ""),
-                    "categories": prompt.get("categories", []),
-                    "help_prompt_description": prompt.get("help_prompt_description", ""),
-                    "help_user_input": prompt.get("help_user_input", ""),
-                    "help_sample_input": prompt.get("help_sample_input", ""),
-                    "type": prompt.get("type", ""),
-                }
-                filtered_prompts.append(filtered_prompt)
+            # Use the prompt service to get cached data
+            if self.server and hasattr(self.server, "prompt_service"):
+                prompts_data = self.server.prompt_service.get_cached_prompts_data()
+                if prompts_data:
+                    logger.debug("Using cached prompts data for get_prompts tool")
+                else:
+                    logger.warning("No prompts available - service may not be initialized")
+                    prompts_data = []
+            else:
+                logger.warning("No prompt service available - tool cannot function properly")
+                return [TextContent(type="text", text="Error: Prompt service not available")]
 
             # Format the response with instructions for the LLM
             formatted_response = {
-                "prompts": filtered_prompts,
-                "total_count": len(filtered_prompts) if isinstance(filtered_prompts, list) else 0,
+                "prompts": prompts_data,
+                "total_count": len(prompts_data) if isinstance(prompts_data, list) else 0,
             }
 
             return [TextContent(type="text", text=json.dumps(formatted_response, indent=2))]
 
-        except httpx.HTTPStatusError as e:
-            error_msg = f"HTTP error from Haiven API: {e.response.status_code} - {e.response.text}"
-            logger.error(error_msg)
-            return [TextContent(type="text", text=f"Error: {error_msg}")]
         except Exception as e:
             error_msg = f"Error fetching prompts: {str(e)}"
             logger.error(error_msg)

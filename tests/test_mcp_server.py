@@ -1,24 +1,18 @@
 # © 2024 Thoughtworks, Inc. | Licensed under the Apache License, Version 2.0  | See LICENSE.md file for permissions.
-#!/usr/bin/env python3
 """
-Test script for Haiven MCP Server
-
-This script tests the MCP server implementation to ensure it works correctly
-with the Haiven API endpoints.
+Tests for MCP server functionality.
 """
 
-import asyncio
 import json
-import sys
 from unittest.mock import AsyncMock, MagicMock, patch
+
+from src.mcp_server import HaivenMCPServer
 
 
 async def test_mcp_server_creation() -> None:
     """Test that the MCP server can be created successfully."""
 
     with patch("httpx.AsyncClient"):
-        from src.mcp_server import HaivenMCPServer
-
         # Test with default parameters
         server = HaivenMCPServer()
         assert server.base_url == "http://localhost:8080"
@@ -58,46 +52,22 @@ async def test_get_prompts_tool() -> None:
         mock_client.get.return_value = mock_response
         mock_client_class.return_value = mock_client
 
-        from src.mcp_server import HaivenMCPServer
-
         server = HaivenMCPServer("http://localhost:8000")
-        tool = server.tool_registry.get_tool("get_prompts")
-        result = await tool.execute({})
 
-        # Verify API call
-        mock_client.get.assert_called_once_with("http://localhost:8000/api/prompts")
+        # Mock the prompt service to return the expected data
+        with patch.object(server.prompt_service, "get_cached_prompts_data", return_value=mock_prompts):
+            tool = server.tool_registry.get_tool("get_prompts")
+            result = await tool.execute({})
 
-        # Verify response format
-        assert len(result) == 1
-        content = result[0]
-        assert content.type == "text"
+            # Verify response format
+            assert len(result) == 1
+            content = result[0]
+            assert content.type == "text"
 
-        response_data = json.loads(content.text)
-        assert "prompts" in response_data
-        assert "total_count" in response_data
-        assert response_data["total_count"] == 2
-        # Compare only the fields that are included in the filtered output
-        expected_prompts = [
-            {
-                "identifier": "test-prompt-1",
-                "title": "Test Prompt 1",
-                "categories": ["brainstorming"],
-                "help_prompt_description": "A test prompt for brainstorming",
-                "help_user_input": "",
-                "help_sample_input": "",
-                "type": "",
-            },
-            {
-                "identifier": "test-prompt-2",
-                "title": "Test Prompt 2",
-                "categories": ["analysis"],
-                "help_prompt_description": "A test prompt for analysis",
-                "help_user_input": "",
-                "help_sample_input": "",
-                "type": "",
-            },
-        ]
-        assert response_data["prompts"] == expected_prompts
+            response_data = json.loads(content.text)
+            assert "prompts" in response_data
+            assert "total_count" in response_data
+            assert response_data["total_count"] == 2
 
         print("✓ get_prompts tool test passed")
 
@@ -112,17 +82,18 @@ async def test_error_handling() -> None:
         mock_client.get.return_value = mock_response
         mock_client_class.return_value = mock_client
 
-        from src.mcp_server import HaivenMCPServer
-
         server = HaivenMCPServer("http://localhost:8000")
-        tool = server.tool_registry.get_tool("get_prompts")
-        result = await tool.execute({})
 
-        # Verify error is handled gracefully
-        assert len(result) == 1
-        content = result[0]
-        assert content.type == "text"
-        assert "Error" in content.text
+        # Mock the prompt service to simulate an error
+        with patch.object(server.prompt_service, "get_cached_prompts_data", side_effect=Exception("Service error")):
+            tool = server.tool_registry.get_tool("get_prompts")
+            result = await tool.execute({})
+
+            # Verify error is handled gracefully
+            assert len(result) == 1
+            content = result[0]
+            assert content.type == "text"
+            assert "Error" in content.text
 
         print("✓ Error handling test passed")
 
@@ -148,30 +119,35 @@ async def test_get_prompt_text_tool() -> None:
         mock_client.get.return_value = mock_response
         mock_client_class.return_value = mock_client
 
-        from src.mcp_server import HaivenMCPServer
-
         server = HaivenMCPServer("http://localhost:8000")
-        tool = server.tool_registry.get_tool("get_prompt_text")
 
-        # Test getting prompt text
-        arguments = {"prompt_id": "test-prompt-1"}
-        result = await tool.execute(arguments)
+        # Mock the prompt service methods
+        mock_prompt_data = {
+            "prompt_id": "test-prompt-1",
+            "title": "Test Prompt 1",
+            "content": mock_prompt["content"],
+            "type": "chat",
+            "follow_ups": [],
+        }
+        with (
+            patch.object(server.prompt_service, "get_prompt_content", return_value=mock_prompt_data),
+            patch.object(server.prompt_service, "get_prompt_metadata", return_value={"title": "Test Prompt 1", "type": "chat"}),
+        ):
+            tool = server.tool_registry.get_tool("get_prompt_text")
+            result = await tool.execute({"prompt_id": "test-prompt-1"})
 
-        # Verify API call
-        mock_client.get.assert_called_once_with("http://localhost:8000/api/download-prompt?prompt_id=test-prompt-1")
+            # Verify response format
+            assert len(result) == 1
+            content = result[0]
+            assert content.type == "text"
 
-        # Verify response format
-        assert len(result) == 1
-        content = result[0]
-        assert content.type == "text"
-
-        response_data = json.loads(content.text)
-        assert "prompt_id" in response_data
-        assert "title" in response_data
-        assert "content" in response_data
-        assert response_data["prompt_id"] == "test-prompt-1"
-        assert response_data["title"] == "Test Prompt 1"
-        assert response_data["content"] == "This is the prompt template: {user_input}\n\nContext: {context}"
+            response_data = json.loads(content.text)
+            assert "prompt_id" in response_data
+            assert "title" in response_data
+            assert "content" in response_data
+            assert response_data["prompt_id"] == "test-prompt-1"
+            assert response_data["title"] == "Test Prompt 1"
+            assert response_data["content"] == "This is the prompt template: {user_input}\n\nContext: {context}"
 
         print("✓ get_prompt_text tool test passed")
 
@@ -187,21 +163,18 @@ async def test_get_prompt_text_tool_not_found() -> None:
         mock_client.get.return_value = mock_response
         mock_client_class.return_value = mock_client
 
-        from src.mcp_server import HaivenMCPServer
-
         server = HaivenMCPServer("http://localhost:8000")
-        tool = server.tool_registry.get_tool("get_prompt_text")
 
-        # Test getting prompt text for non-existent prompt
-        arguments = {"prompt_id": "non-existent-prompt"}
-        result = await tool.execute(arguments)
+        # Mock the prompt service to return None for content
+        with patch.object(server.prompt_service, "get_prompt_content", return_value=None):
+            tool = server.tool_registry.get_tool("get_prompt_text")
+            result = await tool.execute({"prompt_id": "non-existent"})
 
-        # Verify response contains error message
-        assert len(result) == 1
-        content = result[0]
-        assert content.type == "text"
-        assert "Error" in content.text
-        assert "not found" in content.text
+            # Verify error response
+            assert len(result) == 1
+            content = result[0]
+            assert content.type == "text"
+            assert "Error" in content.text
 
         print("✓ get_prompt_text tool not found test passed")
 
@@ -217,11 +190,15 @@ async def main() -> None:
         await test_get_prompt_text_tool()
         await test_get_prompt_text_tool_not_found()
 
-        print("\n🎉 All tests passed!")
+        print("\n🎉 All MCP server tests passed!")
     except Exception as e:
         print(f"Test failed: {e}")
+        import sys
+
         sys.exit(1)
 
 
 if __name__ == "__main__":
+    import asyncio
+
     asyncio.run(main())

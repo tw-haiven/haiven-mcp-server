@@ -54,44 +54,37 @@ class GetPromptTextToolHandler(BaseTool):
             if not prompt_id:
                 return [TextContent(type="text", text="Error: prompt_id is required")]
 
-            base_url = self.client.base_url if hasattr(self.client, "base_url") else ""
+            # Use the prompt service to get content
+            if self.server and hasattr(self.server, "prompt_service"):
+                prompt_data = await self.server.prompt_service.get_prompt_content(prompt_id)
 
-            # Call the Haiven API to get the prompt with content
-            response = await self.client.get(f"{base_url}/api/download-prompt?prompt_id={prompt_id}")
-            response.raise_for_status()
-
-            prompt_data = response.json()
-
-            # Handle case where prompt is not found
-            if not prompt_data:
-                return [
-                    TextContent(
-                        type="text",
-                        text=f"Error: Prompt with ID '{prompt_id}' not found",
-                    )
-                ]
-
-            # If the response is a list (array of prompts), get the first one
-            if isinstance(prompt_data, list):
-                if len(prompt_data) == 0:
+                if prompt_data is None:
                     return [
                         TextContent(
                             type="text",
-                            text=f"Error: Prompt with ID '{prompt_id}' not found",
+                            text=f"Error: Prompt with ID '{prompt_id}' not found or content unavailable",
                         )
                     ]
-                prompt_data = prompt_data[0]
 
-            # Format the response for better readability
-            formatted_response = {
-                "prompt_id": prompt_data.get("identifier", prompt_id),
-                "title": prompt_data.get("title", "Unknown"),
-                "content": prompt_data.get("content", "No content available"),
-                "type": prompt_data.get("type", "chat"),
-                "follow_ups": prompt_data.get("follow_ups", []),
-            }
+                # Extract content and metadata from the structured response
+                content = prompt_data["content"]
+                title = prompt_data["title"]
+                prompt_type = prompt_data["type"]
+                follow_ups = prompt_data["follow_ups"]
 
-            return [TextContent(type="text", text=json.dumps(formatted_response, indent=2))]
+                # Format the response for better readability
+                formatted_response = {
+                    "prompt_id": prompt_id,
+                    "title": title,
+                    "content": content,
+                    "type": prompt_type,
+                    "follow_ups": follow_ups,
+                }
+
+                return [TextContent(type="text", text=json.dumps(formatted_response, indent=2))]
+            else:
+                logger.warning("No prompt service available - tool cannot function properly")
+                return [TextContent(type="text", text="Error: Prompt service not available")]
         except httpx.HTTPStatusError as e:
             error_msg = f"HTTP error from Haiven API: {e.response.status_code} - {e.response.text}"
             logger.error(error_msg)
