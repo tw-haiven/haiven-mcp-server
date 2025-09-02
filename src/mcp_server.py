@@ -20,7 +20,12 @@ from mcp.types import GetPromptResult, PromptMessage, TextContent
 
 # Import tools
 from .services import PromptService
-from .tools import GetPromptsToolHandler, GetPromptTextToolHandler, ToolRegistry
+from .tools import (
+    GetCasperWorkflowToolHandler,
+    GetPromptsToolHandler,
+    GetPromptTextToolHandler,
+    ToolRegistry,
+)
 
 # Configure loguru
 logger.add(sys.stderr, level="INFO", format="{time} | {level} | {name}:{function}:{line} | {message}")
@@ -70,6 +75,7 @@ class HaivenMCPServer:
         """Register all available tools."""
         self.tool_registry.register_tool(GetPromptsToolHandler)
         self.tool_registry.register_tool(GetPromptTextToolHandler)
+        self.tool_registry.register_tool(GetCasperWorkflowToolHandler)
 
     async def _register_prompts(self) -> None:
         """Register all prompts from the API as MCP prompts."""

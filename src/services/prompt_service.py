@@ -67,6 +67,7 @@ class PromptService:
         self.prompts_loaded = False
         self.loaded_prompts: dict[str, PromptMetadata] = {}
         self.prompt_content_cache: dict[str, PromptContentResponse] = {}
+        self.rules_content_cache: dict[str, str] = {}
 
     async def load_prompts_from_api(self) -> list[PromptData]:
         """Load prompts from the Haiven API.
@@ -272,3 +273,71 @@ class PromptService:
             The number of loaded prompts
         """
         return len(self.loaded_prompts) if self.prompts_loaded else 0
+
+    async def get_rules_content(self, rule_id: str) -> str | None:
+        """Get rules content from the Haiven API with caching.
+
+        Args:
+            rule_id: The ID of the rule to fetch (e.g., 'casper')
+
+        Returns:
+            The rules content as a string, or None if not found
+
+        Raises:
+            httpx.HTTPStatusError: If API call fails
+            Exception: For other errors during content fetching
+        """
+        # Check cache first
+        if rule_id in self.rules_content_cache:
+            logger.debug(f"Using cached rules content for rule_id: {rule_id}")
+            return self.rules_content_cache[rule_id]
+
+        try:
+            # Fetch and cache the content
+            logger.debug(f"Fetching and caching rules content for rule_id: {rule_id}")
+            response = await self.client.get(f"{self.base_url}/api/rules?rule_id={rule_id}")
+            response.raise_for_status()
+
+            content: str = response.text
+            self.rules_content_cache[rule_id] = content
+            logger.debug(f"Successfully fetched and cached rules content for {rule_id}")
+            return content
+
+        except httpx.HTTPStatusError as e:
+            logger.error(f"HTTP error fetching rules content for {rule_id}: {e.response.status_code} - {e.response.text}")
+            raise
+        except Exception as e:
+            logger.error(f"Error fetching rules content for {rule_id}: {str(e)}")
+            raise
+
+    def is_rule_cached(self, rule_id: str) -> bool:
+        """Check if a rule is cached.
+
+        Args:
+            rule_id: The ID of the rule to check
+
+        Returns:
+            True if the rule is cached, False otherwise
+        """
+        return rule_id in self.rules_content_cache
+
+    def get_cached_rules_count(self) -> int:
+        """Get the total number of cached rules.
+
+        Returns:
+            The number of cached rules
+        """
+        return len(self.rules_content_cache)
+
+    def clear_rules_cache(self) -> None:
+        """Clear the rules content cache."""
+        self.rules_content_cache.clear()
+        logger.debug("Rules content cache cleared")
+
+    def get_cached_rule_ids(self) -> list[str]:
+        """Get a list of all cached rule IDs.
+
+        Returns:
+            List of cached rule IDs
+        """
+        return list(self.rules_content_cache.keys())

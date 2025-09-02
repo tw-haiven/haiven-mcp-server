@@ -191,6 +191,49 @@ Fetches the content of a specific prompt by ID with full metadata.
 }
 ```
 
+`get_casper_workflow`
+Provides the Casper workflow methodology for AI development guidance, supporting both sharing with LLMs and saving to tool-specific directories.
+
+**Parameters:**
+- `section` (optional): "explore", "craft", "polish", or "full" (default)
+- `mode` (optional): "share" (default) or "save"
+- `tool_context` (optional, save mode): "cursor", "vscode", or "generic" (auto-detected)
+
+**Modes:**
+- **Share:** Returns Casper workflow content for immediate use by the LLM.
+- **Save:** Writes Casper workflow to the appropriate directory for your AI tool (e.g., `.cursor/rules/`, `.github/instructions/`, or project root).
+
+**Example (Share):**
+```json
+{
+  "tool": "get_casper_workflow",
+  "mode": "share",
+  "section": "explore",
+  "content": "# 🔍 Casper's Collaborative Exploration Phase...",
+  "sections_available": ["explore", "craft", "polish", "full"]
+}
+```
+
+**Example (Save):**
+```json
+{
+  "tool": "get_casper_workflow",
+  "mode": "save",
+  "section": "explore",
+  "tool_context": "cursor",
+  "file_path": "/path/to/project/.cursor/rules/casper-explore.mdc",
+  "status": "success"
+}
+```
+
+**Integration:**
+Casper workflow files are auto-saved in the correct format and location for Cursor, VS Code, or generic tools. Tool context is detected automatically.
+
+**Phases:**
+- Explore: Analysis & planning
+- Craft: TDD implementation
+- Polish: Quality refinement
+
 ### For IT Teams
 
 This MCP server:

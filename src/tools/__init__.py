@@ -6,6 +6,7 @@ This package contains all the tools that can be used with the Haiven MCP Server.
 """
 
 from .base_tool import BaseTool
+from .get_casper_workflow import GetCasperWorkflowToolHandler
 from .get_prompt_text import GetPromptTextToolHandler
 from .get_prompts import GetPromptsToolHandler
 from .registry import ToolRegistry
@@ -15,4 +16,5 @@ __all__ = [
     "BaseTool",
     "GetPromptsToolHandler",
     "GetPromptTextToolHandler",
+    "GetCasperWorkflowToolHandler",
 ]

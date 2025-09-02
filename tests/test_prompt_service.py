@@ -281,3 +281,105 @@ class TestUtilityMethods:
             },
         }
         assert prompt_service.get_prompts_count() == 2
+
+
+class TestRulesCaching:
+    """Test rules content caching functionality."""
+
+    def test_initialization_includes_rules_cache(self, mock_client: MagicMock) -> None:
+        """Test that PromptService initializes with rules cache."""
+        service = PromptService(mock_client, "http://localhost:8080")
+        assert service.rules_content_cache == {}
+
+    @pytest.mark.asyncio
+    async def test_get_rules_content_cached(self, prompt_service: PromptService) -> None:
+        """Test getting rules content from cache."""
+        # Set up cached content
+        cached_content = "Cached rules content for casper-workflow"
+        prompt_service.rules_content_cache["casper-workflow"] = cached_content
+
+        result = await prompt_service.get_rules_content("casper-workflow")
+        assert result == cached_content
+
+    @pytest.mark.asyncio
+    async def test_get_rules_content_fetch_and_cache(self, prompt_service: PromptService) -> None:
+        """Test fetching and caching rules content."""
+        # Mock the HTTP response
+        mock_response = MagicMock()
+        mock_response.text = "Fetched rules content for casper-workflow"
+        mock_response.raise_for_status.return_value = None
+
+        with patch.object(prompt_service.client, "get", return_value=mock_response) as mock_get:
+            result = await prompt_service.get_rules_content("casper-workflow")
+
+            # Verify API call
+            mock_get.assert_called_once_with("http://localhost:8080/api/rules?rule_id=casper-workflow")
+
+        # Verify result
+        assert result == "Fetched rules content for casper-workflow"
+
+        # Verify content was cached
+        assert "casper-workflow" in prompt_service.rules_content_cache
+        assert prompt_service.rules_content_cache["casper-workflow"] == "Fetched rules content for casper-workflow"
+
+    @pytest.mark.asyncio
+    async def test_get_rules_content_http_error(self, prompt_service: PromptService) -> None:
+        """Test handling of HTTP errors when fetching rules content."""
+        # Mock HTTP error
+        mock_response = MagicMock()
+        mock_response.status_code = 404
+        mock_response.text = "Rule not found"
+
+        http_error = httpx.HTTPStatusError("Not Found", request=MagicMock(), response=mock_response)
+
+        with patch.object(prompt_service.client, "get", side_effect=http_error):
+            with pytest.raises(httpx.HTTPStatusError):
+                await prompt_service.get_rules_content("non-existent-rule")
+
+        # Verify content was not cached
+        assert "non-existent-rule" not in prompt_service.rules_content_cache
+
+    def test_is_rule_cached_true(self, prompt_service: PromptService) -> None:
+        """Test is_rule_cached when rule exists in cache."""
+        prompt_service.rules_content_cache["test-rule"] = "Test content"
+        assert prompt_service.is_rule_cached("test-rule") is True
+
+    def test_is_rule_cached_false(self, prompt_service: PromptService) -> None:
+        """Test is_rule_cached when rule doesn't exist in cache."""
+        assert prompt_service.is_rule_cached("non-existent-rule") is False
+
+    def test_get_cached_rules_count(self, prompt_service: PromptService) -> None:
+        """Test get_cached_rules_count."""
+        # Initially empty
+        assert prompt_service.get_cached_rules_count() == 0
+
+        # Add some rules
+        prompt_service.rules_content_cache["rule-1"] = "Content 1"
+        prompt_service.rules_content_cache["rule-2"] = "Content 2"
+        assert prompt_service.get_cached_rules_count() == 2
+
+    def test_clear_rules_cache(self, prompt_service: PromptService) -> None:
+        """Test clearing the rules cache."""
+        # Add some rules
+        prompt_service.rules_content_cache["rule-1"] = "Content 1"
+        prompt_service.rules_content_cache["rule-2"] = "Content 2"
+        assert prompt_service.get_cached_rules_count() == 2
+
+        # Clear cache
+        prompt_service.clear_rules_cache()
+        assert prompt_service.get_cached_rules_count() == 0
+        assert prompt_service.rules_content_cache == {}
+
+    def test_get_cached_rule_ids(self, prompt_service: PromptService) -> None:
+        """Test getting cached rule IDs."""
+        # Initially empty
+        assert prompt_service.get_cached_rule_ids() == []
+
+        # Add some rules
+        prompt_service.rules_content_cache["rule-1"] = "Content 1"
+        prompt_service.rules_content_cache["rule-2"] = "Content 2"
+
+        rule_ids = prompt_service.get_cached_rule_ids()
+        assert len(rule_ids) == 2
+        assert "rule-1" in rule_ids
+        assert "rule-2" in rule_ids
