@@ -29,7 +29,7 @@ Connect your AI tools directly to your organization's Haiven prompts. Use expert
    "haiven-prompts": {
      "command": "docker",
      "args": [
-       "run", "-i", "--rm",
+       "run", "-i", "--rm", "--pull=always",
        "-e", "HAIVEN_API_KEY=your-api-key-here",
        "-e", "HAIVEN_API_URL=https://your-haiven-server.com",
        "ghcr.io/tw-haiven/haiven-mcp-server:latest"

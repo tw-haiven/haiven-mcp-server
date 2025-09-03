@@ -18,7 +18,7 @@ if command -v docker &> /dev/null; then
     echo ""
     echo "📋 Docker Configuration Example:"
     echo "   command: docker"
-    echo "   args: [run, -i, --rm, -e, HAIVEN_API_KEY=your-key, -e, HAIVEN_API_URL=your-url, ghcr.io/tw-haiven/haiven-mcp-server:latest]"
+    echo "   args: [run, -i, --rm, --pull=always, -e, HAIVEN_API_KEY=your-key, -e, HAIVEN_API_URL=your-url, ghcr.io/tw-haiven/haiven-mcp-server:latest]"
     echo ""
     echo "💡 See docs/USER_SETUP_GUIDE.md for detailed Docker setup instructions."
     echo ""

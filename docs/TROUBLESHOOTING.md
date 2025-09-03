@@ -41,7 +41,7 @@
 - Check that your API key and URL are correct
 - Test the Docker command manually:
   ```bash
-  docker run -i --rm \
+  docker run -i --rm --pull=always \
     -e HAIVEN_API_KEY="your-api-key" \
     -e HAIVEN_API_URL="https://your-haiven-server.com" \
     --add-host=host.docker.internal:host-gateway \

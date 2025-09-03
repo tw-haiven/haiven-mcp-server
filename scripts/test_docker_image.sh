@@ -16,7 +16,7 @@ echo ""
 
 # Test basic container startup
 echo "📦 Testing container startup..."
-docker run --rm \
+docker run --rm --pull=always \
   -e HAIVEN_API_KEY="$API_KEY" \
   -e HAIVEN_API_URL="$API_URL" \
   --add-host=host.docker.internal:host-gateway \
@@ -27,7 +27,7 @@ echo ""
 echo "🔧 Testing MCP server functionality..."
 # Test MCP server with a simple JSON-RPC request
 echo '{"jsonrpc": "2.0", "id": 1, "method": "initialize", "params": {"protocolVersion": "2024-11-05", "capabilities": {}, "clientInfo": {"name": "test-client", "version": "1.0.0"}}}' | \
-docker run -i --rm \
+docker run -i --rm --pull=always \
   -e HAIVEN_API_KEY="$API_KEY" \
   -e HAIVEN_API_URL="$API_URL" \
   --add-host=host.docker.internal:host-gateway \

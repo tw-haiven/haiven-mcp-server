@@ -192,7 +192,7 @@ def main() -> None:
             "mcpServers": {
                 "haiven-prompts": {
                     "command": "docker",
-                    "args": ["run", "-i", "--rm", "ghcr.io/tw-haiven/haiven-mcp-server:latest"],
+                    "args": ["run", "-i", "--rm", "--pull=always", "ghcr.io/tw-haiven/haiven-mcp-server:latest"],
                     "env": {"HAIVEN_API_URL": haiven_url},
                 }
             }
