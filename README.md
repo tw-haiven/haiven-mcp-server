@@ -145,7 +145,7 @@ Each Haiven prompt is registered as a native MCP prompt with:
 - **Smart caching** for optimal performance
 - **Seamless integration** with MCP-compatible AI tools
 
-#### **Legacy Tools (Backward Compatibility)**
+#### **MCP Tools**
 
 `get_prompts`
 Retrieves all available prompts with their metadata from the cached prompt service.
